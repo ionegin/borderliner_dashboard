@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Borderliner</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { background:#0d1117; color:#e6edf3; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; padding:20px 24px 100px; }
+
+#auth-screen { position:fixed; inset:0; background:#0d1117; z-index:999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; }
+#auth-screen h2 { color:#484f58; font-size:13px; letter-spacing:.1em; text-transform:uppercase; }
+#auth-input { background:#161b22; border:1px solid #30363d; border-radius:8px; color:#e6edf3; font-size:14px; padding:10px 16px; outline:none; width:220px; text-align:center; letter-spacing:.15em; }
+#auth-input:focus { border-color:#7c3aed; }
+#auth-error { color:#ff6b6b; font-size:11px; opacity:0; transition:opacity .2s; }
+
+h1 { font-size:13px; font-weight:500; color:#484f58; margin-bottom:14px; letter-spacing:.1em; text-transform:uppercase; }
+
+.controls { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; align-items:center; }
+.toggle-btn { padding:3px 10px; border-radius:20px; border:1.5px solid; font-size:11px; cursor:pointer; background:transparent; transition:opacity .15s; font-weight:500; white-space:nowrap; }
+.toggle-btn.active { opacity:1; }
+.toggle-btn.inactive { opacity:.2; }
+.sep { width:1px; background:#21262d; align-self:stretch; margin:0 2px; }
+.overlay-btn { padding:3px 10px; border-radius:20px; border:1.5px solid #30363d; font-size:11px; cursor:pointer; background:transparent; color:#484f58; font-weight:500; }
+.overlay-btn.on { background:rgba(72,79,88,.2); color:#e6edf3; border-color:#6e7681; }
+
+.range-row { display:flex; gap:6px; align-items:center; margin-bottom:10px; flex-wrap:wrap; }
+.range-btn { padding:3px 9px; border-radius:6px; border:1px solid #30363d; font-size:11px; cursor:pointer; background:#161b22; color:#8b949e; }
+.range-btn.active { background:#21262d; color:#e6edf3; border-color:#484f58; }
+.date-input { background:#161b22; border:1px solid #30363d; border-radius:6px; color:#8b949e; font-size:11px; padding:3px 7px; }
+.date-input:focus { outline:none; border-color:#484f58; }
+.rl { font-size:11px; color:#30363d; }
+
+/* AI notes bar */
+#notes-bar { position:relative; height:26px; margin-bottom:4px; }
+.n-pin { position:absolute; transform:translateX(-50%); font-size:13px; top:2px; cursor:pointer; z-index:10; transition:transform .1s; }
+.n-pin:hover { transform:translateX(-50%) scale(1.4); }
+.n-vline { position:absolute; width:1px; background:rgba(240,192,64,.25); top:20px; transform:translateX(-50%); pointer-events:none; height:200px; }
+.n-popup { position:absolute; background:#1c2128; border:1px solid rgba(240,192,64,.5); border-radius:6px; padding:5px 9px; font-size:10px; color:#f0c040; top:22px; transform:translateX(-50%); z-index:50; pointer-events:none; display:none; white-space:normal; max-width:180px; line-height:1.4; }
+
+/* Note dots on chart */
+#note-dots { position:relative; height:16px; margin-top:3px; }
+.n-dot { position:absolute; width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.2); transform:translateX(-50%); top:4px; cursor:pointer; transition:background .15s; }
+.n-dot:hover { background:rgba(255,255,255,.7); }
+.n-dot-pop { position:absolute; background:#1c2128; border:1px solid #30363d; border-radius:6px; padding:5px 9px; font-size:10px; color:#c9d1d9; top:16px; transform:translateX(-50%); z-index:50; pointer-events:none; display:none; white-space:normal; max-width:220px; line-height:1.4; }
+
+.chart-wrap { background:#161b22; border-radius:12px; border:1px solid #21262d; padding:14px 14px 10px; margin-bottom:8px; }
+.c1-rel { position:relative; }
+.zoom-sel { position:absolute; top:0; height:100%; background:rgba(124,58,237,.13); border-left:1px solid rgba(124,58,237,.5); border-right:1px solid rgba(124,58,237,.5); pointer-events:none; display:none; z-index:4; }
+#zoom-reset { display:none; padding:2px 8px; border-radius:6px; border:1px solid #7c3aed; font-size:10px; cursor:pointer; background:transparent; color:#9d5cff; margin-left:8px; }
+
+/* tooltip — date only */
+.tt { position:fixed; background:#1c2128; border:1px solid #30363d; border-radius:6px; padding:6px 10px; font-size:11px; color:#8b949e; pointer-events:none; z-index:200; display:none; }
+
+#status { font-size:10px; color:#30363d; margin-bottom:12px; display:flex; gap:10px; align-items:center; }
+#sdot { width:6px; height:6px; border-radius:50%; background:#30363d; flex-shrink:0; }
+#sdot.ok { background:#56d364; } #sdot.err { background:#ff6b6b; } #sdot.spin { background:#f0c040; animation:pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
+
+#refresh-btn { position:fixed; bottom:28px; right:28px; background:linear-gradient(135deg,#7c3aed,#9d5cff); color:#fff; border:none; border-radius:30px; padding:13px 26px; font-size:13px; font-weight:600; cursor:pointer; box-shadow:0 4px 20px rgba(124,58,237,.4); transition:all .2s; z-index:100; }
+#refresh-btn:hover { transform:translateY(-2px); }
+#refresh-btn.loading { opacity:.65; cursor:wait; }
+</style>
+</head>
+<body>
+
+<div id="auth-screen">
+  <h2>Borderliner</h2>
+  <input id="auth-input" type="password" placeholder="••••••••">
+  <div id="auth-error">Неверный пароль</div>
+</div>
+
+<div id="app" style="display:none">
+<h1>Borderliner · Mood Tracker</h1>
+<div id="status"><div id="sdot"></div><span id="stxt">—</span></div>
+
+<div class="range-row">
+  <button class="range-btn" onclick="setRange(7,this)">7д</button>
+  <button class="range-btn" onclick="setRange(14,this)">14д</button>
+  <button class="range-btn" onclick="setRange(30,this)">30д</button>
+  <button class="range-btn active" onclick="setRange(999,this)">всё</button>
+  <div class="sep"></div>
+  <span class="rl">с</span><input class="date-input" type="date" id="df" onchange="setCustomRange()">
+  <span class="rl">по</span><input class="date-input" type="date" id="dt" onchange="setCustomRange()">
+</div>
+
+<!-- AI notes pins (above chart1 controls) -->
+<div id="notes-bar" style="display:none"></div>
+
+<!-- Chart 1 controls -->
+<div class="controls" id="c1-controls">
+  <button class="toggle-btn active" id="btn-anxiety"       style="color:#ff6b6b;border-color:#ff6b6b"       onclick="tog('anxiety')">Тревога</button>
+  <button class="toggle-btn active" id="btn-energy"        style="color:#4ec9b0;border-color:#4ec9b0"        onclick="tog('energy')">Энергия</button>
+  <button class="toggle-btn active" id="btn-irritability"  style="color:#7c9ede;border-color:#7c9ede"        onclick="tog('irritability')">Раздражит.</button>
+  <button class="toggle-btn active" id="btn-racing"        style="color:#e06c75;border-color:#e06c75"        onclick="tog('racing')">💭 Мысли</button>
+  <div class="sep"></div>
+  <button class="toggle-btn active" id="btn-ai"            style="color:#f0c040;border-color:#f0c040"        onclick="tog('ai')">🤖 AI</button>
+  <button class="toggle-btn active" id="btn-raw_ai"        style="color:#ff9f7f;border-color:#ff9f7f"        onclick="tog('raw_ai')">🔬 Raw AI</button>
+  <div class="sep"></div>
+  <button class="toggle-btn active" id="btn-sleep"         style="color:#87ceeb;border-color:#87ceeb"        onclick="tog('sleep')">🌙 Сон</button>
+  <button class="toggle-btn active" id="btn-smoked_line"   style="color:#39ff6e;border-color:#39ff6e"        onclick="tog('smoked_line')">🌿 Косяков</button>
+  <div class="sep"></div>
+  <button class="toggle-btn active" id="btn-yoga_b"        style="color:#bf7fff;border-color:#bf7fff"        onclick="tog('yoga_b')">🧘 Йога</button>
+  <button class="toggle-btn active" id="btn-modafinil_b"   style="color:#ff9f3f;border-color:#ff9f3f"        onclick="tog('modafinil_b')">💊 Модафинил</button>
+</div>
+
+<div class="chart-wrap">
+  <div style="display:flex;align-items:center;margin-bottom:6px;">
+    <button class="overlay-btn" id="btn-ov" onclick="togOv()">⊞ Наложить активность</button>
+    <button id="zoom-reset" onclick="resetZoom()">✕ Сброс zoom</button>
+  </div>
+  <!-- Тёмная полоса зоны 9–10 с кнопками внутри -->
+  <div id="c1-top-zone" style="position:relative;background:rgba(0,0,0,.25);border-radius:6px 6px 0 0;padding:5px 8px;margin-bottom:0;border:1px solid #21262d;border-bottom:none;overflow:hidden;">
+    <div id="c1-btn-strip" style="display:flex;flex-wrap:wrap;gap:5px;align-items:center;min-height:22px;">
+      <!-- кнопки перенесутся сюда через JS -->
+    </div>
+  </div>
+  <div class="c1-rel" style="border-radius:0 0 6px 6px;overflow:hidden;border:1px solid #21262d;border-top:none;">
+    <div class="zoom-sel" id="zoom-sel"></div>
+    <canvas id="c1" height="160"></canvas>
+  </div>
+  <div id="note-dots"></div>
+</div>
+
+<!-- Chart 2 controls -->
+<div class="controls">
+  <button class="toggle-btn active" id="btn-meditate" style="color:#6495ed;border-color:#6495ed" onclick="tog('meditate')">🧘 Медитация</button>
+  <button class="toggle-btn active" id="btn-work"     style="color:#50c878;border-color:#50c878" onclick="tog('work')">💼 Работа</button>
+  <button class="toggle-btn active" id="btn-messages" style="color:#c586c0;border-color:#c586c0" onclick="tog('messages')">💬 Сообщения</button>
+</div>
+
+<div class="chart-wrap">
+  <canvas id="c2" height="100"></canvas>
+</div>
+
+</div><!-- /app -->
+
+<div class="tt" id="tt"></div>
+<button id="refresh-btn" onclick="refreshData()">↻ Обновить</button>
+
+<script>
+// ══════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════
+const PWD_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918'; // "admin" — смени!
+
+const SHEETS = {
+  // Вставь свой ID и точные названия листов
+  main: 'https://docs.google.com/spreadsheets/d/ТВОЙ_ID/gviz/tq?tqx=out:json&sheet=Sheet3',
+  ai:   'https://docs.google.com/spreadsheets/d/ТВОЙ_ID/gviz/tq?tqx=out:json&sheet=AI',
+};
+
+// Маппинг колонок Sheets → поля дашборда
+// Ключ = название колонки в Sheet (точное), значение = поле в DATA
+const COL_MAP = {
+  'Date':               'date',
+  'energy':             'energy',
+  'anxiety':            'anxiety',
+  'communication':      'irritability',   // переименовано
+  'racing_thoughts':    'racing_thoughts',
+  'sleep_hours':        'sleep_hours',
+  'sleep_time':         'sleep_time',
+  'wake_time':          'wake_time',
+  'productivity_hours': 'productivity_hours',
+  'meditate_minutes':   'meditate_minutes',
+  'smoked':             'smoked',
+  'yoga':               'yoga',
+  'modafinil':          'modafinil',
+  'mood_note':          'mood_note',
+  'created_at':         'created_at',
+};
+
+const FIELD_AGG = {
+  energy:'mean', anxiety:'mean', irritability:'mean', racing_thoughts:'mean',
+  sleep_hours:'mean', productivity_hours:'mean', meditate_minutes:'mean',
+  smoked:'sum', yoga:'max', modafinil:'max',
+  mood_note:'notes', sleep_time:'first', wake_time:'first',
+};
+
+// ══════════════════════════════════════════════
+// STATIC DATA
+// ══════════════════════════════════════════════
+const STATIC = [
+  {date:"2026-02-15",energy:6,anxiety:3,irritability:6,racing_thoughts:null,sleep_hours:8,smoked:2,yoga:1,modafinil:0,meditate_minutes:null,productivity_hours:3,_messages:1,_ai:5,_raw_ai:5,mood_note:""},
+  {date:"2026-02-16",energy:6,anxiety:5,irritability:4,racing_thoughts:null,sleep_hours:10,smoked:2,yoga:0,modafinil:0,meditate_minutes:14,productivity_hours:3,_messages:1,_ai:7,_raw_ai:7,mood_note:"Немотивированные волны агрессии, пропуск кветиапина"},
+  {date:"2026-02-17",energy:4.5,anxiety:6,irritability:4.5,racing_thoughts:null,sleep_hours:10,smoked:2,yoga:1,modafinil:0,meditate_minutes:10,productivity_hours:3,_messages:2,_ai:4,_raw_ai:4,mood_note:"Самокритика, усталость"},
+  {date:"2026-02-18",energy:7,anxiety:3,irritability:7,racing_thoughts:null,sleep_hours:7,smoked:2,yoga:1,modafinil:0,meditate_minutes:63,productivity_hours:4,_messages:1,_ai:6,_raw_ai:5,mood_note:""},
+  {date:"2026-02-19",energy:5,anxiety:6,irritability:4,racing_thoughts:null,sleep_hours:10,smoked:2,yoga:0,modafinil:0,meditate_minutes:24,productivity_hours:0,_messages:1,_ai:4,_raw_ai:4,mood_note:"Беспокоит поиск работы"},
+  {date:"2026-02-20",energy:6,anxiety:5,irritability:6,racing_thoughts:null,sleep_hours:8,smoked:2,yoga:0,modafinil:0,meditate_minutes:0,productivity_hours:5,_messages:1,_ai:5,_raw_ai:6,mood_note:""},
+  {date:"2026-02-21",energy:3,anxiety:7,irritability:4,racing_thoughts:null,sleep_hours:7,smoked:2,yoga:1,modafinil:0,meditate_minutes:36,productivity_hours:0,_messages:3,_ai:7,_raw_ai:6,mood_note:"Адская тревога + гиперфокус — смешанное"},
+  {date:"2026-02-22",energy:4.5,anxiety:4,irritability:5,racing_thoughts:null,sleep_hours:9,smoked:2,yoga:1,modafinil:0,meditate_minutes:0,productivity_hours:0,_messages:2,_ai:5,_raw_ai:5,mood_note:""},
+  {date:"2026-02-23",energy:6,anxiety:4,irritability:5,racing_thoughts:null,sleep_hours:6,smoked:2,yoga:0,modafinil:0,meditate_minutes:10,productivity_hours:0,_messages:1,_ai:5,_raw_ai:5,mood_note:""},
+  {date:"2026-02-24",energy:5,anxiety:3.5,irritability:5.5,racing_thoughts:null,sleep_hours:6,smoked:2,yoga:1,modafinil:0,meditate_minutes:53,productivity_hours:2,_messages:2,_ai:6,_raw_ai:6,mood_note:""},
+  {date:"2026-02-25",energy:5,anxiety:4.5,irritability:5,racing_thoughts:null,sleep_hours:11,smoked:2,yoga:0,modafinil:0,meditate_minutes:null,productivity_hours:null,_messages:2,_ai:4,_raw_ai:3,mood_note:"Гашиш тяжёлый, пересон 13ч"},
+  {date:"2026-02-26",energy:6.5,anxiety:4.5,irritability:4.5,racing_thoughts:null,sleep_hours:7,smoked:2,yoga:1,modafinil:0,meditate_minutes:18,productivity_hours:3,_messages:2,_ai:5,_raw_ai:4,mood_note:""},
+  {date:"2026-02-27",energy:4.3,anxiety:3.7,irritability:5.3,racing_thoughts:null,sleep_hours:6,smoked:2,yoga:1,modafinil:0,meditate_minutes:42,productivity_hours:3,_messages:3,_ai:5,_raw_ai:5,mood_note:""},
+  {date:"2026-02-28",energy:6.2,anxiety:4,irritability:6,racing_thoughts:null,sleep_hours:7,smoked:2,yoga:1,modafinil:0,meditate_minutes:50,productivity_hours:4,_messages:4,_ai:6,_raw_ai:5,mood_note:""},
+  {date:"2026-03-01",energy:5.5,anxiety:4,irritability:6,racing_thoughts:null,sleep_hours:8,smoked:0,yoga:1,modafinil:0,meditate_minutes:0,productivity_hours:2,_messages:2,_ai:5,_raw_ai:5,mood_note:"Не курил весь день"},
+  {date:"2026-03-02",energy:4,anxiety:5,irritability:5,racing_thoughts:null,sleep_hours:7,smoked:2,yoga:0,modafinil:0,meditate_minutes:0,productivity_hours:0,_messages:2,_ai:4,_raw_ai:4,mood_note:"Рано покурил"},
+  {date:"2026-03-03",energy:3.5,anxiety:5.5,irritability:4,racing_thoughts:null,sleep_hours:9,smoked:2,yoga:1,modafinil:0,meditate_minutes:19,productivity_hours:0,_messages:2,_ai:4,_raw_ai:4,mood_note:"Импульсы, рефлексия о зависимости"},
+  {date:"2026-03-04",energy:3.2,anxiety:5.5,irritability:4,racing_thoughts:null,sleep_hours:8,smoked:2,yoga:0,modafinil:0,meditate_minutes:24,productivity_hours:0,_messages:4,_ai:3,_raw_ai:3,mood_note:"Депрессивные маркеры, дедлайны горят"},
+  {date:"2026-03-05",energy:6,anxiety:6,irritability:5,racing_thoughts:null,sleep_hours:10,smoked:2,yoga:0,modafinil:0,meditate_minutes:40,productivity_hours:0,_messages:1,_ai:5,_raw_ai:5,mood_note:""},
+  {date:"2026-03-06",energy:6,anxiety:6,irritability:6,racing_thoughts:null,sleep_hours:8,smoked:2,yoga:1,modafinil:0,meditate_minutes:30,productivity_hours:0,_messages:1,_ai:5,_raw_ai:5,mood_note:""},
+  {date:"2026-03-07",energy:3,anxiety:2,irritability:4,racing_thoughts:null,sleep_hours:6,smoked:0,yoga:1,modafinil:0,meditate_minutes:34,productivity_hours:0,_messages:2,_ai:6,_raw_ai:6,mood_note:"Половина марки, психологически радостно"},
+  {date:"2026-03-08",energy:4,anxiety:5,irritability:4,racing_thoughts:null,sleep_hours:9,smoked:0,yoga:1,modafinil:0,meditate_minutes:50,productivity_hours:0,_messages:4,_ai:6,_raw_ai:5,mood_note:""},
+  {date:"2026-03-09",energy:7,anxiety:4.5,irritability:5.5,racing_thoughts:null,sleep_hours:8,smoked:0,yoga:0,modafinil:0,meditate_minutes:0,productivity_hours:7,_messages:2,_ai:7,_raw_ai:7,mood_note:"Критерии победы над зависимостью"},
+  {date:"2026-03-10",energy:6.2,anxiety:3,irritability:6.3,racing_thoughts:null,sleep_hours:9,smoked:0,yoga:0,modafinil:0,meditate_minutes:20,productivity_hours:2,_messages:10,_ai:8,_raw_ai:8,mood_note:"Гипомания — сложно сидеть, куча сил"},
+  {date:"2026-03-11",energy:6.3,anxiety:3,irritability:5.3,racing_thoughts:null,sleep_hours:8,smoked:0,yoga:1,modafinil:0,meditate_minutes:30,productivity_hours:3,_messages:4,_ai:6,_raw_ai:7,mood_note:""},
+  {date:"2026-03-12",energy:6.3,anxiety:3,irritability:7,racing_thoughts:null,sleep_hours:4,smoked:1,yoga:1,modafinil:0,meditate_minutes:70,productivity_hours:2,_messages:7,_ai:7,_raw_ai:7,mood_note:"Габапентин+курение=гипомания вечером"},
+  {date:"2026-03-13",energy:5,anxiety:3.5,irritability:5,racing_thoughts:null,sleep_hours:7,smoked:0,yoga:1,modafinil:0,meditate_minutes:null,productivity_hours:null,_messages:4,_ai:7,_raw_ai:4,mood_note:"Овершеринг, быстрая речь"},
+  {date:"2026-03-14",energy:7,anxiety:5,irritability:4,racing_thoughts:null,sleep_hours:8,smoked:1,yoga:0,modafinil:0,meditate_minutes:32,productivity_hours:2,_messages:2,_ai:6,_raw_ai:5,mood_note:"Злость при маме, дисфория"},
+  {date:"2026-03-15",energy:4,anxiety:6,irritability:4.5,racing_thoughts:null,sleep_hours:9,smoked:2,yoga:0,modafinil:0,meditate_minutes:0,productivity_hours:0,_messages:7,_ai:4,_raw_ai:4,mood_note:"Шторм: тревога 8, поводок, слёзы"},
+  {date:"2026-03-16",energy:5,anxiety:5,irritability:4.5,racing_thoughts:null,sleep_hours:12,smoked:2,yoga:0,modafinil:0,meditate_minutes:0,productivity_hours:1,_messages:4,_ai:4,_raw_ai:4,mood_note:"Боли в теле, ругань с мамой"},
+  {date:"2026-03-17",energy:4,anxiety:4.3,irritability:3.7,racing_thoughts:null,sleep_hours:9,smoked:2,yoga:0,modafinil:1,meditate_minutes:20,productivity_hours:0,_messages:7,_ai:5,_raw_ai:5,mood_note:"После Светы — решение закрыть, меланхолия"},
+];
+
+let AI_NOTES = [
+  {date:"2026-02-16",text:"Дисфорическая гипомания"},
+  {date:"2026-02-21",text:"Смешанное состояние"},
+  {date:"2026-03-04",text:"Депрессивное дно"},
+  {date:"2026-03-10",text:"Гипомания — пик"},
+  {date:"2026-03-15",text:"Шторм, смешанное"},
+];
+
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let DATA = [...STATIC];
+const vis = {
+  anxiety:true,  energy:true,  irritability:true,
+  racing:false,  ai:false,     raw_ai:false,
+  sleep:false,   smoked_line:false,
+  meditate:true, work:true,    messages:true,
+  yoga_b:false,  modafinil_b:false
+};
+let dateFrom=null, dateTo=null, rangeN=999, overlayOn=false;
+let c1, c2;
+
+// ══════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════
+async function sha256(s) {
+  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+async function checkAuth() {
+  const h = await sha256(document.getElementById('auth-input').value);
+  if (h === PWD_HASH) {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    init();
+  } else {
+    const e = document.getElementById('auth-error');
+    e.style.opacity = '1';
+    document.getElementById('auth-input').value = '';
+    setTimeout(()=>e.style.opacity='0', 2000);
+  }
+}
+document.getElementById('auth-input').addEventListener('keydown', e=>{ if(e.key==='Enter') checkAuth(); });
+
+// ══════════════════════════════════════════════
+// SHEETS PARSER
+// ══════════════════════════════════════════════
+function parseGviz(raw) {
+  const m = raw.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+  if (!m) return null;
+  try { return JSON.parse(m[1]); } catch { return null; }
+}
+
+function sheetsToRows(parsed) {
+  if (!parsed?.table) return null;
+  const cols = parsed.table.cols.map(c => c.label || c.id);
+  return (parsed.table.rows || []).map(row => {
+    const obj = {};
+    cols.forEach((col, i) => {
+      if (col.startsWith('#')) return; // инвалидация через #
+      const mapped = COL_MAP[col] || col; // маппинг колонки
+      const cell = row.c?.[i];
+      obj[mapped] = cell?.v ?? null;
+    });
+    return obj;
+  });
+}
+
+// ══════════════════════════════════════════════
+// AGGREGATION
+// ══════════════════════════════════════════════
+function aggregateByDay(rows) {
+  const byDate = {};
+  rows.forEach(row => {
+    let d = row.date || row.Date;
+    if (!d) return;
+    if (d instanceof Date) d = d.toISOString().slice(0,10);
+    else d = String(d).slice(0,10);
+    if (!byDate[d]) byDate[d] = [];
+    byDate[d].push(row);
+  });
+
+  return Object.keys(byDate).sort().map(date => {
+    const g = byDate[date];
+    const agg = {date, _messages: g.length};
+    const keys = new Set(g.flatMap(r=>Object.keys(r)));
+    keys.forEach(col => {
+      if (['date','Date','created_at'].includes(col)) return;
+      const rule = FIELD_AGG[col] || 'mean';
+      const vals = g.map(r=>r[col]).filter(v=>v!=null&&v!=='');
+      if (!vals.length) { agg[col]=null; return; }
+      if (rule==='mean')  { const n=vals.map(Number).filter(x=>!isNaN(x)); agg[col]=n.length?n.reduce((a,b)=>a+b)/n.length:null; }
+      else if (rule==='sum')   { agg[col]=vals.map(Number).filter(x=>!isNaN(x)).reduce((a,b)=>a+b,0); }
+      else if (rule==='max')   { agg[col]=vals.map(Number).filter(x=>!isNaN(x)).reduce((a,b)=>Math.max(a,b),0); }
+      else if (rule==='first') { agg[col]=vals[0]; }
+      else if (rule==='notes') { agg[col]=vals.filter(Boolean).join(' | '); }
+    });
+    // Считаем сон из sleep_time / wake_time если нет sleep_hours
+    if (!agg.sleep_hours && agg.sleep_time && agg.wake_time) {
+      try {
+        const [sh,sm] = String(agg.sleep_time).split(':').map(Number);
+        const [wh,wm] = String(agg.wake_time).split(':').map(Number);
+        let mins = (wh*60+wm)-(sh*60+sm);
+        if (mins<0) mins+=1440;
+        agg.sleep_hours = +(mins/60).toFixed(1);
+      } catch {}
+    }
+    return agg;
+  });
+}
+
+function mergeAI(main, aiRows) {
+  const byDate = {};
+  aiRows.forEach(r => {
+    let d = r.date || r.Date;
+    if (!d) return;
+    if (d instanceof Date) d = d.toISOString().slice(0,10);
+    else d = String(d).slice(0,10);
+    byDate[d] = r;
+  });
+  AI_NOTES = [];
+  return main.map(row => {
+    const ai = byDate[row.date];
+    if (ai) {
+      if (ai.ai_score  != null) row._ai     = +ai.ai_score;
+      if (ai.raw_ai_score != null) row._raw_ai = +ai.raw_ai_score;
+      if (ai.ai_note)  AI_NOTES.push({date: row.date, text: ai.ai_note});
+    }
+    return row;
+  });
+}
+
+// ══════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════
+function getD() {
+  let d = DATA;
+  if (dateFrom) d = d.filter(r=>r.date>=dateFrom);
+  if (dateTo)   d = d.filter(r=>r.date<=dateTo);
+  if (rangeN<999 && !dateFrom && !dateTo) d = d.slice(-rangeN);
+  return d;
+}
+function ma(arr) {
+  return arr.map((v,i)=>{
+    const s = arr.slice(Math.max(0,i-1),i+2).filter(x=>x!=null);
+    return s.length ? s.reduce((a,b)=>a+b)/s.length : null;
+  });
+}
+// Сон: сдвиг -3 (12ч→9, 8ч→5, 6ч→3)
+function sleepVal(h) { return h!=null ? h-3 : null; }
+// Косяков: 0 → 0 (ниже линии 1), 1→2, 2→4, 3→6, 4→8, 5→10
+function smokedVal(n) {
+  if (n == null) return null;
+  if (n === 0) return 0;
+  return Math.min(n, 5) * 2;
+}
+// Бинарное для chart2: YES = середина графика (5)
+function binVal(v) { return (v && Number(v)>0) ? 5 : null; }
+// Медитация и работа: пропорционально, 1ч = 10мин
+// meditate: 0–100мин → 0–10; work: 0–10ч → 0–10
+function meditateVal(m) { return m!=null ? Math.min(m,100)/10 : null; }
+function workVal(h) { return h!=null ? Math.min(h,10) : null; }
+
+// ══════════════════════════════════════════════
+// DATASETS
+// ══════════════════════════════════════════════
+function buildC1ds(data) {
+  const ds = [];
+
+  // Overlay: активность фоном, база 3, растёт до 9
+  if (overlayOn) {
+    const OV_BASE = 3, OV_TOP = 9;
+    const OV_H = OV_TOP - OV_BASE;
+    const ovCfg = [
+      [data.map(r=>r.meditate_minutes!=null ? OV_BASE+Math.min(r.meditate_minutes,100)/100*OV_H : null), 'rgba(100,149,237,.15)'],
+      [data.map(r=>r.productivity_hours!=null ? OV_BASE+Math.min(r.productivity_hours,10)/10*OV_H : null), 'rgba(80,200,120,.15)'],
+      [data.map(r=>r._messages!=null ? OV_BASE+Math.min(r._messages,12)/12*OV_H : null), 'rgba(197,134,192,.15)'],
+    ];
+    ovCfg.forEach(([d,c])=>ds.push({
+      type:'bar', label:'', data:d,
+      backgroundColor:c, borderWidth:0, barPercentage:.95,
+      base:OV_BASE,   // ← бар начинается от 3.8, ниже — пусто
+      yAxisID:'y', order:20
+    }));
+  }
+
+  const push = (label,data,color,opts={}) => ds.push({
+    label, data, borderColor:color, backgroundColor:'transparent',
+    tension:opts.t||0.35, pointRadius:opts.pr??2, pointHoverRadius:4,
+    borderWidth:opts.lw||2, borderDash:opts.dash, fill:false,
+    pointStyle:opts.ps||'circle', yAxisID:'y', order:1, spanGaps:true
+  });
+
+  if (vis.anxiety)      push('Тревога',        ma(data.map(r=>r.anxiety)),        '#ff6b6b', {t:.4});
+  if (vis.energy)       push('Энергия',         ma(data.map(r=>r.energy)),         '#4ec9b0', {t:.4});
+  if (vis.irritability) push('Раздражит.',      ma(data.map(r=>r.irritability)),   '#7c9ede', {t:.4});
+  if (vis.racing)       push('Мысли',           ma(data.map(r=>r.racing_thoughts)),'#e06c75', {t:.4});
+  if (vis.ai)           push('AI оценка',       data.map(r=>r._ai??null),          '#f0c040', {t:.3, dash:[5,3], ps:'triangle', pr:3});
+  if (vis.raw_ai)       push('Raw AI',          data.map(r=>r._raw_ai??null),      '#ff9f7f', {t:.6, lw:2.5});
+  if (vis.sleep)        push('Сон (ч)',  data.map(r=>sleepVal(r.sleep_hours)), 'rgba(135,206,235,.75)', {t:.45,lw:1.5,pr:2});
+
+  // Нижняя зона: Косяки, Йога, Модафинил — неоновые линии у основания
+  // yes=2.5, no=2.0, smoked=0 → 0 (ниже отметки 1)
+  if (vis.smoked_line) ds.push({
+    label:'Косяков', data:data.map(r=>smokedVal(r.smoked)),
+    borderColor:'#39ff6e', backgroundColor:'rgba(57,255,110,.08)',
+    tension:0.35, pointRadius:2, pointHoverRadius:5,
+    borderWidth:1.5, fill:false, yAxisID:'y', order:2, spanGaps:true,
+    _neon:true
+  });
+  if (vis.yoga_b) ds.push({
+    label:'Йога', data:data.map(r=>r.yoga ? 2.5 : 2.0),
+    borderColor:'#bf7fff', backgroundColor:'rgba(191,127,255,.07)',
+    tension:0.3, pointRadius:r=>2, pointHoverRadius:5,
+    borderWidth:1.5, fill:false, yAxisID:'y', order:2, spanGaps:true,
+    _binary:true, _binLabel:'Йога'
+  });
+  if (vis.modafinil_b) ds.push({
+    label:'Модафинил', data:data.map(r=>r.modafinil ? 2.5 : 2.0),
+    borderColor:'#ff9f3f', backgroundColor:'rgba(255,159,63,.07)',
+    tension:0.3, pointRadius:2, pointHoverRadius:5,
+    borderWidth:1.5, fill:false, yAxisID:'y', order:2, spanGaps:true,
+    _binary:true, _binLabel:'Модафинил'
+  });
+
+  return ds;
+}
+
+function buildC2ds(data) {
+  const ds = [];
+  const bar = (label,vals,color,unit) => ds.push({
+    type:'bar', label, data:vals, backgroundColor:color,
+    borderColor:color.replace('.6','.85'), borderWidth:1,
+    borderRadius:3, barPercentage:.55, _unit:unit
+  });
+  if (vis.meditate)    bar('Медитация (мин÷10)', data.map(r=>meditateVal(r.meditate_minutes)), 'rgba(100,149,237,.6)', '÷10мин');
+  if (vis.work)        bar('Работа (ч)',          data.map(r=>workVal(r.productivity_hours)),   'rgba(80,200,120,.6)',  'ч');
+  if (vis.messages)    bar('Сообщения',           data.map(r=>r._messages??null),               'rgba(197,134,192,.6)', 'шт');
+  return ds;
+}
+
+// ══════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════
+function rebuild() {
+  const data = getD();
+  const labels = data.map(d=>d.date.slice(5));
+
+  c1.data.labels = labels;
+  c1.data.datasets = buildC1ds(data);
+  c1.update();
+
+  // Chart2: scatter needs indexed labels
+  c2.data.labels = labels;
+  c2.data.datasets = buildC2ds(data);
+  c2.update();
+
+  buildNotesBar(data);
+  buildNoteDots(data);
+}
+
+function buildNotesBar(data) {
+  const bar = document.getElementById('notes-bar');
+  bar.innerHTML = '';
+  if (!data.length) return;
+  const notes = AI_NOTES.filter(n=>data.some(d=>d.date===n.date));
+  if (!notes.length) return;
+
+  notes.forEach(n => {
+    const idx = data.findIndex(d=>d.date===n.date);
+    if (idx<0) return;
+    const pct = ((idx+.5)/data.length)*100;
+
+    const vl = document.createElement('div');
+    vl.className = 'n-vline';
+    vl.style.left = pct+'%';
+
+    const pin = document.createElement('div');
+    pin.className = 'n-pin';
+    pin.style.left = pct+'%';
+    pin.textContent = '📝';
+
+    const pop = document.createElement('div');
+    pop.className = 'n-popup';
+    pop.style.left = pct+'%';
+    pop.textContent = n.text;
+
+    pin.addEventListener('mouseenter',()=>{ pop.style.display='block'; vl.style.background='rgba(240,192,64,.5)'; });
+    pin.addEventListener('mouseleave',()=>{ pop.style.display='none'; vl.style.background='rgba(240,192,64,.25)'; });
+
+    bar.appendChild(vl);
+    bar.appendChild(pin);
+    bar.appendChild(pop);
+  });
+}
+
+function buildNoteDots(data) {
+  const wrap = document.getElementById('note-dots');
+  wrap.innerHTML = '';
+  if (!data.length) return;
+
+  // Высота canvas для вертикальной линии
+  const canvas = document.getElementById('c1');
+
+  data.forEach((d,i) => {
+    if (!d.mood_note) return;
+    const pct = (((i+.5)/data.length)*100)+'%';
+
+    // Вертикальная линия (изначально скрыта)
+    const vline = document.createElement('div');
+    vline.style.cssText = `position:absolute;left:${pct};top:0;transform:translateX(-50%);width:1px;background:rgba(255,255,255,.15);pointer-events:none;display:none;z-index:3;`;
+    vline.style.height = (canvas ? canvas.offsetHeight : 160) + 'px';
+    vline.style.marginTop = `-${(canvas ? canvas.offsetHeight : 160)}px`;
+
+    const dot = document.createElement('div');
+    dot.className = 'n-dot';
+    dot.style.left = pct;
+
+    const pop = document.createElement('div');
+    pop.className = 'n-dot-pop';
+    // Не даём попапу уходить за правый край
+    const pctNum = (i+.5)/data.length;
+    pop.style.left = pct;
+    pop.style.transform = pctNum > 0.75 ? 'translateX(-90%)' : pctNum < 0.15 ? 'translateX(-10%)' : 'translateX(-50%)';
+    pop.textContent = d.mood_note;
+
+    dot.addEventListener('mouseenter', () => {
+      pop.style.display='block';
+      vline.style.display='block';
+      dot.style.background='rgba(255,255,255,.7)';
+    });
+    dot.addEventListener('mouseleave', () => {
+      pop.style.display='none';
+      vline.style.display='none';
+      dot.style.background='';
+    });
+
+    wrap.appendChild(vline);
+    wrap.appendChild(dot);
+    wrap.appendChild(pop);
+  });
+}
+
+// ══════════════════════════════════════════════
+// CONTROLS
+// ══════════════════════════════════════════════
+function tog(k) {
+  vis[k]=!vis[k];
+  const b=document.getElementById('btn-'+k);
+  if(b){b.classList.toggle('active',vis[k]);b.classList.toggle('inactive',!vis[k]);}
+  updateYMin();
+  rebuild();
+}
+function togOv() {
+  overlayOn=!overlayOn;
+  document.getElementById('btn-ov').classList.toggle('on',overlayOn);
+  rebuild();
+}
+function setRange(n,el) {
+  rangeN=n; dateFrom=null; dateTo=null;
+  document.getElementById('df').value='';
+  document.getElementById('dt').value='';
+  document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  rebuild();
+}
+function setCustomRange() {
+  dateFrom=document.getElementById('df').value||null;
+  dateTo=document.getElementById('dt').value||null;
+  rangeN=999;
+  document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));
+  rebuild();
+}
+
+// ══════════════════════════════════════════════
+// REFRESH
+// ══════════════════════════════════════════════
+function setStatus(cls,txt) {
+  document.getElementById('sdot').className=cls;
+  document.getElementById('stxt').textContent=txt;
+}
+
+async function refreshData() {
+  const btn=document.getElementById('refresh-btn');
+  btn.textContent='⏳ Загружаю...'; btn.classList.add('loading');
+  setStatus('spin','Загружаю данные...');
+  try {
+    const r1 = await fetch(SHEETS.main);
+    const p1 = parseGviz(await r1.text());
+    const rows = sheetsToRows(p1);
+    if (rows?.length) {
+      let agg = aggregateByDay(rows);
+      try {
+        const r2 = await fetch(SHEETS.ai);
+        const p2 = parseGviz(await r2.text());
+        const aiRows = sheetsToRows(p2);
+        if (aiRows?.length) agg = mergeAI(agg, aiRows);
+      } catch {}
+      DATA = agg;
+      setStatus('ok',`Обновлено · последняя запись ${DATA[DATA.length-1]?.date||'—'}`);
+    } else {
+      setStatus('err','Sheets недоступен — статические данные');
+    }
+  } catch {
+    setStatus('err','Ошибка сети — статические данные');
+  }
+  rebuild();
+  btn.textContent='↻ Обновить'; btn.classList.remove('loading');
+}
+
+// ══════════════════════════════════════════════
+// TOOLTIP — только дата
+// ══════════════════════════════════════════════
+function makeTT(canvas) {
+  canvas.addEventListener('mousemove', e => {
+    const rect = canvas.getBoundingClientRect();
+    const tt = document.getElementById('tt');
+    const data = getD();
+    // грубая оценка индекса по X
+    const x = e.clientX - rect.left;
+    const idx = Math.round((x / rect.width) * (data.length-1));
+    if (idx>=0 && idx<data.length) {
+      tt.textContent = data[idx].date;
+      tt.style.display='block';
+      tt.style.left=Math.min(e.clientX+12, window.innerWidth-100)+'px';
+      tt.style.top=(e.clientY-30)+'px';
+    }
+  });
+  canvas.addEventListener('mouseleave',()=>{ document.getElementById('tt').style.display='none'; });
+}
+
+// ══════════════════════════════════════════════
+// ZOOM — drag to select range on c1
+// ══════════════════════════════════════════════
+let zoomStart = null, zoomEnd = null, isDragging = false;
+
+function initZoom() {
+  const canvas = document.getElementById('c1');
+  const sel = document.getElementById('zoom-sel');
+
+  canvas.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    const rect = canvas.getBoundingClientRect();
+    zoomStart = (e.clientX - rect.left) / rect.width;
+    isDragging = true;
+    sel.style.display = 'block';
+    sel.style.left = (zoomStart*100)+'%';
+    sel.style.width = '0';
+  });
+
+  canvas.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    const rect = canvas.getBoundingClientRect();
+    zoomEnd = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const l = Math.min(zoomStart, zoomEnd);
+    const w = Math.abs(zoomEnd - zoomStart);
+    sel.style.left = (l*100)+'%';
+    sel.style.width = (w*100)+'%';
+  });
+
+  canvas.addEventListener('mouseup', e => {
+    if (!isDragging) return;
+    isDragging = false;
+    const rect = canvas.getBoundingClientRect();
+    zoomEnd = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    sel.style.display = 'none';
+
+    if (Math.abs(zoomEnd - zoomStart) < 0.02) return; // слишком маленький выбор
+
+    const data = getD();
+    const n = data.length;
+    const iStart = Math.max(0, Math.floor(Math.min(zoomStart, zoomEnd) * n));
+    const iEnd   = Math.min(n-1, Math.ceil(Math.max(zoomStart, zoomEnd) * n));
+    if (iEnd <= iStart) return;
+
+    dateFrom = data[iStart].date;
+    dateTo   = data[iEnd].date;
+    document.getElementById('df').value = dateFrom;
+    document.getElementById('dt').value = dateTo;
+    document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('zoom-reset').style.display = 'inline-block';
+    rebuild();
+  });
+
+  // Cancel on mouse leave
+  canvas.addEventListener('mouseleave', () => {
+    if (isDragging) { isDragging = false; sel.style.display='none'; }
+  });
+}
+
+function resetZoom() {
+  dateFrom = null; dateTo = null; rangeN = 999;
+  document.getElementById('df').value = '';
+  document.getElementById('dt').value = '';
+  document.getElementById('zoom-reset').style.display = 'none';
+  document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.range-btn:last-of-type')?.classList.add('active');
+  rebuild();
+}
+
+// Динамический min оси Y
+// Нижняя зона нужна только если есть реальные ненулевые данные у активных нижних метрик
+function getYMin() {
+  if (!vis.smoked_line && !vis.yoga_b && !vis.modafinil_b) return 1.8;
+  const data = getD();
+  if (vis.smoked_line && data.some(r => (r.smoked ?? 0) > 0)) return -0.5;
+  if (vis.yoga_b      && data.some(r => r.yoga))              return -0.5;
+  if (vis.modafinil_b && data.some(r => r.modafinil))         return -0.5;
+  // Метрики включены но все значения нулевые/нет — свернуть
+  return 1.8;
+}
+
+function updateYMin() {
+  if (!c1) return;
+  const newMin = getYMin();
+  if (c1.options.scales.y.min !== newMin) {
+    c1.options.scales.y.min = newMin;
+    c1.options.scales.ySleep.min = newMin; // синхронизируем правую ось
+  }
+  c1.options.scales.ySleep.display = !!vis.sleep;
+  c1.update('none');
+}
+function init() {
+  const baseOpts = {
+    responsive:true,
+    maintainAspectRatio:true,
+    animation:false,           // без анимации — нет прыжков
+    resizeDelay:0,
+    interaction:{mode:'nearest',intersect:true,axis:'xy'},
+    plugins:{
+      legend:{display:false},
+      tooltip:{enabled:false}
+    },
+    scales:{
+      x:{ticks:{color:'#30363d',font:{size:9},maxRotation:45},grid:{color:'#161b22'}},
+      y:{ticks:{color:'#30363d',font:{size:9}},grid:{color:'#1a1f27'}}
+    }
+  };
+
+  c1 = new Chart(document.getElementById('c1'), {
+    type:'line', data:{labels:[],datasets:[]},
+    options:{...baseOpts,
+      clip: false,
+      scales:{...baseOpts.scales,
+        y:{...baseOpts.scales.y,
+          min:getYMin(),
+          max:10,
+          ticks:{...baseOpts.scales.y.ticks, stepSize:1,
+            callback: v => { if (v <= 1 || v >= 10) return ''; return v; }
+          }
+        },
+        // Правая ось: реальные часы сна (смещение +3 обратно)
+        ySleep:{
+          position:'right',
+          display: false,  // включается вместе с кнопкой "Сон"
+          min: getYMin(),
+          max: 13,         // 10+3=13
+          grid:{ display:false },
+          ticks:{
+            color:'rgba(135,206,235,.5)',
+            font:{size:8},
+            stepSize:1,
+            callback: v => {
+              // Показываем только реальные значения сна (4–12)
+              const real = v + 3;
+              if (real < 4 || real > 12) return '';
+              return real + 'ч';
+            }
+          }
+        }
+      },
+      plugins:{
+        ...baseOpts.plugins,
+        // Тёмная зона выше 9
+        darkZone: {
+          draw(chart) {
+            const {ctx, chartArea, scales} = chart;
+            if (!chartArea) return;
+            const y9 = scales.y.getPixelForValue(9);
+            if (y9 > chartArea.top) {
+              ctx.save();
+              ctx.fillStyle = 'rgba(0,0,0,.22)';
+              ctx.fillRect(chartArea.left, chartArea.top, chartArea.width, y9 - chartArea.top);
+              ctx.restore();
+            }
+          }
+        },
+        tooltip:{
+          enabled:false,
+          external: ctx => {
+            const tt = document.getElementById('tt');
+            if (ctx.tooltip.opacity === 0) { tt.style.display='none'; return; }
+            const data = getD();
+            const idx = ctx.tooltip.dataPoints?.[0]?.dataIndex;
+            if (idx == null || !data[idx]) { tt.style.display='none'; return; }
+            // Только ближайший датасет (первый в dataPoints при mode:'nearest')
+            const nearest = ctx.tooltip.dataPoints[0];
+            const label = nearest?.dataset?.label || '';
+            const dateStr = data[idx].date;
+            tt.innerHTML = label
+              ? `<span style="opacity:.55;font-size:10px">${dateStr}</span>&nbsp;&nbsp;<span style="color:${nearest.dataset.borderColor}">${label}</span>`
+              : `<span style="opacity:.55">${dateStr}</span>`;
+            tt.style.display='block';
+            tt.style.left = Math.min(ctx.chart.canvas.getBoundingClientRect().left + ctx.tooltip.caretX + 14, window.innerWidth-200)+'px';
+            tt.style.top  = (ctx.chart.canvas.getBoundingClientRect().top  + ctx.tooltip.caretY - 32)+'px';
+          }
+        }
+      }
+    },
+    plugins:[{
+      id:'darkZone',
+      afterDatasetsDraw(chart) {
+        const {ctx, chartArea, scales} = chart;
+        if (!chartArea || !scales.y) return;
+        const y9 = scales.y.getPixelForValue(9);
+        if (y9 > chartArea.top) {
+          ctx.save();
+          ctx.fillStyle = 'rgba(0,0,0,.22)';
+          ctx.fillRect(chartArea.left, chartArea.top, chartArea.width, y9 - chartArea.top);
+          ctx.restore();
+        }
+      }
+    }]
+  });
+
+  c2 = new Chart(document.getElementById('c2'), {
+    type:'bar', data:{labels:[],datasets:[]},
+    options:{...baseOpts,
+      scales:{...baseOpts.scales,
+        y:{...baseOpts.scales.y, min:0}
+      }
+    }
+  });
+
+  // Переносим кнопки chart1 в тёмную полосу наверху
+  const strip = document.getElementById('c1-btn-strip');
+  const ctrlDiv = document.getElementById('c1-controls');
+  if (strip && ctrlDiv) {
+    strip.appendChild(ctrlDiv);
+    ctrlDiv.style.margin = '0';
+    ctrlDiv.style.marginBottom = '0';
+  }
+
+  makeTT(document.getElementById('c2'));
+  initZoom();
+
+  // Синхронизируем кнопки с начальным состоянием vis
+  Object.entries(vis).forEach(([k,v]) => {
+    const b = document.getElementById('btn-'+k);
+    if (b) { b.classList.toggle('active', v); b.classList.toggle('inactive', !v); }
+  });
+
+  setStatus('ok',`Статические данные · ${STATIC[STATIC.length-1].date}`);
+  rebuild();
+}
+</script>
+</body>
+</html>
