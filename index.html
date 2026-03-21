@@ -510,39 +510,7 @@
     // ══════════════════════════════════════════════
     // STATIC DATA
     // ══════════════════════════════════════════════
-    const STATIC = [
-      { date: "2026-02-15", energy: 6, anxiety: 3, irritability: 6, racing_thoughts: null, sleep_hours: 8, smoked: 2, yoga: 1, modafinil: 0, meditate_minutes: null, productivity_hours: 3, _messages: 1, _ai: 5, _raw_ai: 5, mood_note: "" },
-      { date: "2026-02-16", energy: 6, anxiety: 5, irritability: 4, racing_thoughts: null, sleep_hours: 10, smoked: 2, yoga: 0, modafinil: 0, meditate_minutes: 14, productivity_hours: 3, _messages: 1, _ai: 7, _raw_ai: 7, mood_note: "Немотивированные волны агрессии, пропуск кветиапина" },
-      { date: "2026-02-17", energy: 4.5, anxiety: 6, irritability: 4.5, racing_thoughts: null, sleep_hours: 10, smoked: 2, yoga: 1, modafinil: 0, meditate_minutes: 10, productivity_hours: 3, _messages: 2, _ai: 4, _raw_ai: 4, mood_note: "Самокритика, усталость" },
-      { date: "2026-02-18", energy: 7, anxiety: 3, irritability: 7, racing_thoughts: null, sleep_hours: 7, smoked: 2, yoga: 1, modafinil: 0, meditate_minutes: 63, productivity_hours: 4, _messages: 1, _ai: 6, _raw_ai: 5, mood_note: "" },
-      { date: "2026-02-19", energy: 5, anxiety: 6, irritability: 4, racing_thoughts: null, sleep_hours: 10, smoked: 2, yoga: 0, modafinil: 0, meditate_minutes: 24, productivity_hours: 0, _messages: 1, _ai: 4, _raw_ai: 4, mood_note: "Беспокоит поиск работы" },
-      { date: "2026-02-20", energy: 6, anxiety: 5, irritability: 6, racing_thoughts: null, sleep_hours: 8, smoked: 2, yoga: 0, modafinil: 0, meditate_minutes: 0, productivity_hours: 5, _messages: 1, _ai: 5, _raw_ai: 6, mood_note: "" },
-      { date: "2026-02-21", energy: 3, anxiety: 7, irritability: 4, racing_thoughts: null, sleep_hours: 7, smoked: 2, yoga: 1, modafinil: 0, meditate_minutes: 36, productivity_hours: 0, _messages: 3, _ai: 7, _raw_ai: 6, mood_note: "Адская тревога + гиперфокус — смешанное" },
-      { date: "2026-02-22", energy: 4.5, anxiety: 4, irritability: 5, racing_thoughts: null, sleep_hours: 9, smoked: 2, yoga: 1, modafinil: 0, meditate_minutes: 0, productivity_hours: 0, _messages: 2, _ai: 5, _raw_ai: 5, mood_note: "" },
-      { date: "2026-02-23", energy: 6, anxiety: 4, irritability: 5, racing_thoughts: null, sleep_hours: 6, smoked: 2, yoga: 0, modafinil: 0, meditate_minutes: 10, productivity_hours: 0, _messages: 1, _ai: 5, _raw_ai: 5, mood_note: "" },
-      { date: "2026-02-24", energy: 5, anxiety: 3.5, irritability: 5.5, racing_thoughts: null, sleep_hours: 6, smoked: 2, yoga: 1, modafinil: 0, meditate_minutes: 53, productivity_hours: 2, _messages: 2, _ai: 6, _raw_ai: 6, mood_note: "" },
-      { date: "2026-02-25", energy: 5, anxiety: 4.5, irritability: 5, racing_thoughts: null, sleep_hours: 11, smoked: 2, yoga: 0, modafinil: 0, meditate_minutes: null, productivity_hours: null, _messages: 2, _ai: 4, _raw_ai: 3, mood_note: "Гашиш тяжёлый, пересон 13ч" },
-      { date: "2026-02-26", energy: 6.5, anxiety: 4.5, irritability: 4.5, racing_thoughts: null, sleep_hours: 7, smoked: 2, yoga: 1, modafinil: 0, meditate_minutes: 18, productivity_hours: 3, _messages: 2, _ai: 5, _raw_ai: 4, mood_note: "" },
-      { date: "2026-02-27", energy: 4.3, anxiety: 3.7, irritability: 5.3, racing_thoughts: null, sleep_hours: 6, smoked: 2, yoga: 1, modafinil: 0, meditate_minutes: 42, productivity_hours: 3, _messages: 3, _ai: 5, _raw_ai: 5, mood_note: "" },
-      { date: "2026-02-28", energy: 6.2, anxiety: 4, irritability: 6, racing_thoughts: null, sleep_hours: 7, smoked: 2, yoga: 1, modafinil: 0, meditate_minutes: 50, productivity_hours: 4, _messages: 4, _ai: 6, _raw_ai: 5, mood_note: "" },
-      { date: "2026-03-01", energy: 5.5, anxiety: 4, irritability: 6, racing_thoughts: null, sleep_hours: 8, smoked: 0, yoga: 1, modafinil: 0, meditate_minutes: 0, productivity_hours: 2, _messages: 2, _ai: 5, _raw_ai: 5, mood_note: "Не курил весь день" },
-      { date: "2026-03-02", energy: 4, anxiety: 5, irritability: 5, racing_thoughts: null, sleep_hours: 7, smoked: 2, yoga: 0, modafinil: 0, meditate_minutes: 0, productivity_hours: 0, _messages: 2, _ai: 4, _raw_ai: 4, mood_note: "Рано покурил" },
-      { date: "2026-03-03", energy: 3.5, anxiety: 5.5, irritability: 4, racing_thoughts: null, sleep_hours: 9, smoked: 2, yoga: 1, modafinil: 0, meditate_minutes: 19, productivity_hours: 0, _messages: 2, _ai: 4, _raw_ai: 4, mood_note: "Импульсы, рефлексия о зависимости" },
-      { date: "2026-03-04", energy: 3.2, anxiety: 5.5, irritability: 4, racing_thoughts: null, sleep_hours: 8, smoked: 2, yoga: 0, modafinil: 0, meditate_minutes: 24, productivity_hours: 0, _messages: 4, _ai: 3, _raw_ai: 3, mood_note: "Депрессивные маркеры, дедлайны горят" },
-      { date: "2026-03-05", energy: 6, anxiety: 6, irritability: 5, racing_thoughts: null, sleep_hours: 10, smoked: 2, yoga: 0, modafinil: 0, meditate_minutes: 40, productivity_hours: 0, _messages: 1, _ai: 5, _raw_ai: 5, mood_note: "" },
-      { date: "2026-03-06", energy: 6, anxiety: 6, irritability: 6, racing_thoughts: null, sleep_hours: 8, smoked: 2, yoga: 1, modafinil: 0, meditate_minutes: 30, productivity_hours: 0, _messages: 1, _ai: 5, _raw_ai: 5, mood_note: "" },
-      { date: "2026-03-07", energy: 3, anxiety: 2, irritability: 4, racing_thoughts: null, sleep_hours: 6, smoked: 0, yoga: 1, modafinil: 0, meditate_minutes: 34, productivity_hours: 0, _messages: 2, _ai: 6, _raw_ai: 6, mood_note: "Половина марки, психологически радостно" },
-      { date: "2026-03-08", energy: 4, anxiety: 5, irritability: 4, racing_thoughts: null, sleep_hours: 9, smoked: 0, yoga: 1, modafinil: 0, meditate_minutes: 50, productivity_hours: 0, _messages: 4, _ai: 6, _raw_ai: 5, mood_note: "" },
-      { date: "2026-03-09", energy: 7, anxiety: 4.5, irritability: 5.5, racing_thoughts: null, sleep_hours: 8, smoked: 0, yoga: 0, modafinil: 0, meditate_minutes: 0, productivity_hours: 7, _messages: 2, _ai: 7, _raw_ai: 7, mood_note: "Критерии победы над зависимостью" },
-      { date: "2026-03-10", energy: 6.2, anxiety: 3, irritability: 6.3, racing_thoughts: null, sleep_hours: 9, smoked: 0, yoga: 0, modafinil: 0, meditate_minutes: 20, productivity_hours: 2, _messages: 10, _ai: 8, _raw_ai: 8, mood_note: "Гипомания — сложно сидеть, куча сил" },
-      { date: "2026-03-11", energy: 6.3, anxiety: 3, irritability: 5.3, racing_thoughts: null, sleep_hours: 8, smoked: 0, yoga: 1, modafinil: 0, meditate_minutes: 30, productivity_hours: 3, _messages: 4, _ai: 6, _raw_ai: 7, mood_note: "" },
-      { date: "2026-03-12", energy: 6.3, anxiety: 3, irritability: 7, racing_thoughts: null, sleep_hours: 4, smoked: 1, yoga: 1, modafinil: 0, meditate_minutes: 70, productivity_hours: 2, _messages: 7, _ai: 7, _raw_ai: 7, mood_note: "Габапентин+курение=гипомания вечером" },
-      { date: "2026-03-13", energy: 5, anxiety: 3.5, irritability: 5, racing_thoughts: null, sleep_hours: 7, smoked: 0, yoga: 1, modafinil: 0, meditate_minutes: null, productivity_hours: null, _messages: 4, _ai: 7, _raw_ai: 4, mood_note: "Овершеринг, быстрая речь" },
-      { date: "2026-03-14", energy: 7, anxiety: 5, irritability: 4, racing_thoughts: null, sleep_hours: 8, smoked: 1, yoga: 0, modafinil: 0, meditate_minutes: 32, productivity_hours: 2, _messages: 2, _ai: 6, _raw_ai: 5, mood_note: "Злость при маме, дисфория" },
-      { date: "2026-03-15", energy: 4, anxiety: 6, irritability: 4.5, racing_thoughts: null, sleep_hours: 9, smoked: 2, yoga: 0, modafinil: 0, meditate_minutes: 0, productivity_hours: 0, _messages: 7, _ai: 4, _raw_ai: 4, mood_note: "Шторм: тревога 8, поводок, слёзы" },
-      { date: "2026-03-16", energy: 5, anxiety: 5, irritability: 4.5, racing_thoughts: null, sleep_hours: 12, smoked: 2, yoga: 0, modafinil: 0, meditate_minutes: 0, productivity_hours: 1, _messages: 4, _ai: 4, _raw_ai: 4, mood_note: "Боли в теле, ругань с мамой" },
-      { date: "2026-03-17", energy: 4, anxiety: 4.3, irritability: 3.7, racing_thoughts: null, sleep_hours: 9, smoked: 2, yoga: 0, modafinil: 1, meditate_minutes: 20, productivity_hours: 0, _messages: 7, _ai: 5, _raw_ai: 5, mood_note: "После Светы — решение закрыть, меланхолия" },
-    ];
+    const STATIC = []
 
     let AI_NOTES = [
       { date: "2026-02-16", text: "Дисфорическая гипомания" },
@@ -952,10 +920,10 @@
           DATA = agg;
           setStatus('ok', `Обновлено · последняя запись ${DATA[DATA.length - 1]?.date || '—'}`);
         } else {
-          setStatus('err', 'Sheets недоступен — статические данные');
+          setStatus('err', 'Sheets недоступен — нет данных');
         }
       } catch {
-        setStatus('err', 'Ошибка сети — статические данные');
+        setStatus('err', 'Ошибка сети — нет данных');
       }
       rebuild();
       btn.textContent = '↻ Обновить'; btn.classList.remove('loading');
@@ -1209,7 +1177,7 @@
         if (b) { b.classList.toggle('active', v); b.classList.toggle('inactive', !v); }
       });
 
-      setStatus('ok', `Статические данные · ${STATIC[STATIC.length - 1].date}`);
+      setStatus('ok', 'Нет данных — нажмите обновить');
       rebuild();
     }
   </script>
