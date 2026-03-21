@@ -594,7 +594,8 @@
     function parseGviz(raw) {
       const m = raw.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
       if (!m) return null;
-      try { return JSON.parse(m[1]); } catch { return null; }
+      let jsonStr = m[1].replace(/new Date\((.*?)\)/g, '"$1"');
+      try { return JSON.parse(jsonStr); } catch { return null; }
     }
 
     function sheetsToRows(parsed) {
@@ -615,13 +616,50 @@
     // ══════════════════════════════════════════════
     // AGGREGATION
     // ══════════════════════════════════════════════
+    function normalizeDate(val) {
+      if (!val) return null;
+      if (val instanceof Date) {
+        const local = new Date(val.getTime() - val.getTimezoneOffset() * 60000);
+        return local.toISOString().slice(0, 10);
+      }
+      let s = String(val).trim();
+      
+      const gvizMatch = s.match(/^(\d{4})\s*,\s*(\d{1,2})\s*,\s*(\d{1,2})/);
+      if (gvizMatch) {
+         let mm = String(Number(gvizMatch[2]) + 1).padStart(2, '0');
+         return `${gvizMatch[1]}-${mm}-${gvizMatch[3].padStart(2, '0')}`;
+      }
+
+      if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+      
+      const m = s.match(/^(\d{2})[\/\.](\d{2})[\/\.](\d{4})/);
+      if (m) {
+         if (+m[1] <= 12 && +m[2] > 12) {
+             return `${m[3]}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}`;
+         }
+         return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+      }
+      
+      const d = new Date(s);
+      if (!isNaN(d.getTime())) {
+         const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+         return local.toISOString().slice(0, 10);
+      }
+      return s.slice(0, 10);
+    }
+
+    function safeNum(val) {
+      if (val == null || val === '') return null;
+      let s = String(val).replace(',', '.');
+      let n = Number(s);
+      return isNaN(n) ? null : n;
+    }
+
     function aggregateByDay(rows) {
       const byDate = {};
       rows.forEach(row => {
-        let d = row.date || row.Date;
+        let d = normalizeDate(row.date || row.Date);
         if (!d) return;
-        if (d instanceof Date) d = d.toISOString().slice(0, 10);
-        else d = String(d).slice(0, 10);
         if (!byDate[d]) byDate[d] = [];
         byDate[d].push(row);
       });
@@ -658,19 +696,20 @@
     function mergeAI(main, aiRows) {
       const byDate = {};
       aiRows.forEach(r => {
-        let d = r.date || r.Date;
+        let d = normalizeDate(r.date || r.Date || r.timestamp || r.Timestamp);
         if (!d) return;
-        if (d instanceof Date) d = d.toISOString().slice(0, 10);
-        else d = String(d).slice(0, 10);
         byDate[d] = r;
       });
       AI_NOTES = [];
       return main.map(row => {
         const ai = byDate[row.date];
         if (ai) {
-          if (ai.ai_score != null) row._ai = +ai.ai_score;
-          if (ai.raw_ai_score != null) row._raw_ai = +ai.raw_ai_score;
-          if (ai.ai_note) AI_NOTES.push({ date: row.date, text: ai.ai_note });
+          const aiScore = safeNum(ai.ai_score || ai.AI_score || ai.AI_Score);
+          const rawAiScore = safeNum(ai.raw_ai_score || ai.RAW_ai_score || ai.Raw_ai_score || ai.Raw_AI_Score);
+          if (aiScore != null) row._ai = aiScore;
+          if (rawAiScore != null) row._raw_ai = rawAiScore;
+          const noteText = ai.ai_note || ai.AI_note || ai.note || ai.notes;
+          if (noteText) AI_NOTES.push({ date: row.date, text: String(noteText) });
         }
         return row;
       });
