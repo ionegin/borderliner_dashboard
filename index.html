@@ -276,10 +276,10 @@ function buildC1ds(data){
     ].forEach(([d,c])=>ds.push({type:'bar',label:'',data:d,backgroundColor:c,borderWidth:0,barPercentage:.95,base:OV_BASE,yAxisID:'y',order:20}));
   }
   const push=(label,data,color,opts={})=>ds.push({label,data,borderColor:color,backgroundColor:'transparent',tension:opts.t||0.35,pointRadius:opts.pr??2,pointHoverRadius:5,borderWidth:opts.lw||2,borderDash:opts.dash,fill:false,pointStyle:opts.ps||'circle',yAxisID:'y',order:1,spanGaps:true});
-  if(vis.anxiety)push('Тревога',ma(data.map(r=>r.anxiety)),'#e24b4a',{t:.4});
-  if(vis.energy)push('Энергия',ma(data.map(r=>r.energy)),'#1d9e75',{t:.4});
-  if(vis.irritability)push('Раздражит.',ma(data.map(r=>r.irritability)),'#378add',{t:.4});
-  if(vis.racing)push('Мысли',ma(data.map(r=>r.racing_thoughts)),'#d4537e',{t:.4});
+  if(vis.anxiety)push('Тревога',data.map(r=>r.anxiety),'#e24b4a',{t:.4});
+  if(vis.energy)push('Энергия',data.map(r=>r.energy),'#1d9e75',{t:.4});
+  if(vis.irritability)push('Раздражит.',data.map(r=>r.irritability),'#378add',{t:.4});
+  if(vis.racing)push('Мысли',data.map(r=>r.racing_thoughts),'#d4537e',{t:.4});
   if(vis.ai)push('AI',data.map(r=>r._ai??null),'#ba7517',{t:.3,dash:[5,3],ps:'triangle',pr:3});
   // Сон: tension=0 (ломаные), уменьшенная амплитуда
   if(vis.sleep)push('Сон',data.map(r=>sleepVal(r.sleep_hours)),'#185fa5',{t:0,lw:1.5,pr:2});
