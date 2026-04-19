@@ -1,4 +1,3 @@
-
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:#f5f0e8;}
@@ -64,8 +63,9 @@ h1{font-size:11px;font-weight:500;color:#888780;margin-bottom:10px;letter-spacin
     <button class="toggle-btn active" id="btn-modafinil_b" style="color:#d85a30;border-color:#d85a30" onclick="tog('modafinil_b')">Модафинил</button>
   </div>
   <div class="chart-wrap">
-    <div style="display:flex;align-items:center;margin-bottom:5px;">
+    <div style="display:flex;align-items:center;margin-bottom:5px;gap:6px;">
       <button class="overlay-btn" id="btn-ov" onclick="togOv()">Наложить активность</button>
+      <button class="overlay-btn" id="btn-smooth" onclick="toggleSmooth()">Сглаживание</button>
       <button id="zoom-reset" onclick="resetZoom()">✕ Сброс</button>
     </div>
     <div id="c1-top-zone" style="position:relative;background:rgba(0,0,0,.03);border-radius:6px 6px 0 0;padding:4px 6px;border:1px solid #d3d1c7;border-bottom:none;overflow:hidden;">
@@ -98,7 +98,6 @@ const SHEETS={
 const COL_MAP={'Date':'date','energy':'energy','anxiety':'anxiety','communication':'irritability','racing_thoughts':'racing_thoughts','sleep_hours':'sleep_hours','sleep_time':'sleep_time','wake_time':'wake_time','productivity_hours':'productivity_hours','meditate_minutes':'meditate_minutes','smoked':'smoked','yoga':'yoga','modafinil':'modafinil','mood_note':'mood_note','created_at':'created_at','ai_score':'ai_score'};
 const FIELD_AGG={energy:'mean',anxiety:'mean',irritability:'mean',racing_thoughts:'mean',sleep_hours:'mean',productivity_hours:'mean',meditate_minutes:'mean',smoked:'sum',yoga:'max',modafinil:'max',mood_note:'notes',sleep_time:'first',wake_time:'first',ai_score:'mean'};
 
-// yes/no → 1/0
 function normalizeVal(v){
   if(v==='yes'||v==='Yes'||v===true)return 1;
   if(v==='no'||v==='No'||v===false)return 0;
@@ -149,7 +148,7 @@ let AI_NOTES=[
 
 let DATA=[...STATIC];
 const vis={anxiety:true,energy:true,irritability:true,racing:false,ai:false,sleep:false,smoked_line:false,meditate:true,work:true,messages:true,yoga_b:false,modafinil_b:false};
-let dateFrom=null,dateTo=null,rangeN=999,overlayOn=false,c1,c2;
+let dateFrom=null,dateTo=null,rangeN=999,overlayOn=false,smoothing=false,c1,c2;
 
 function parseGviz(raw){const m=raw.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);if(!m)return null;try{return JSON.parse(m[1]);}catch{return null;}}
 
@@ -171,7 +170,6 @@ function sheetsToRows(parsed){
 }
 
 function gvizDateToISO(v){
-  // gviz возвращает Date(year,month0,day) как строку или объект
   if(!v)return null;
   if(typeof v==='string'){
     const m=v.match(/Date\((\d+),(\d+),(\d+)/);
@@ -179,7 +177,6 @@ function gvizDateToISO(v){
     return v.slice(0,10);
   }
   if(v instanceof Date)return v.toISOString().slice(0,10);
-  // Excel serial
   if(typeof v==='number'&&v>40000){const d=new Date((v-25569)*86400000);return d.toISOString().slice(0,10);}
   return String(v).slice(0,10);
 }
@@ -222,9 +219,7 @@ function aggregateByDay(rows){
   });
 }
 
-// Мёрж Notes: ai_score и note по дате
 function mergeNotes(mainAgg, notesRows){
-  // Группируем notes по дате
   const byDate={};
   notesRows.forEach(r=>{
     let d=r.created_at||r.date;
@@ -239,13 +234,11 @@ function mergeNotes(mainAgg, notesRows){
 
   return mainAgg.map(row=>{
     const nd=byDate[row.date]||[];
-    // Собираем ai_score из Notes + из Active
     const scores=[];
     if(row.ai_score!=null)scores.push(+row.ai_score);
     nd.forEach(n=>{if(n.ai_score!=null)scores.push(+n.ai_score);});
     row._ai=scores.length?scores.reduce((a,b)=>a+b)/scores.length:null;
 
-    // Собираем notes: mood_note из Active + note из Notes
     const notes=[];
     if(row.mood_note)notes.push(row.mood_note);
     nd.forEach(n=>{if(n.note)notes.push(n.note);});
@@ -258,7 +251,6 @@ function mergeNotes(mainAgg, notesRows){
 function getD(){let d=DATA;if(dateFrom)d=d.filter(r=>r.date>=dateFrom);if(dateTo)d=d.filter(r=>r.date<=dateTo);if(rangeN<999&&!dateFrom&&!dateTo)d=d.slice(-rangeN);return d;}
 function ma(arr){return arr.map((v,i)=>{const s=arr.slice(Math.max(0,i-1),i+2).filter(x=>x!=null);return s.length?s.reduce((a,b)=>a+b)/s.length:null;});}
 
-// Сон: масштаб уменьшен — всё в диапазоне 0–10 через нормализацию 4–12ч → 2–8
 function sleepVal(h){if(h==null)return null;return Math.max(0,Math.min(10,(h-4)/8*6+2));}
 function smokedVal(n){if(n==null)return null;if(n===0)return 0;return Math.min(n,10);}
 function meditateVal(m){return m!=null?Math.min(m,100)/10:null;}
@@ -276,12 +268,12 @@ function buildC1ds(data){
     ].forEach(([d,c])=>ds.push({type:'bar',label:'',data:d,backgroundColor:c,borderWidth:0,barPercentage:.95,base:OV_BASE,yAxisID:'y',order:20}));
   }
   const push=(label,data,color,opts={})=>ds.push({label,data,borderColor:color,backgroundColor:'transparent',tension:opts.t||0.35,pointRadius:opts.pr??2,pointHoverRadius:5,borderWidth:opts.lw||2,borderDash:opts.dash,fill:false,pointStyle:opts.ps||'circle',yAxisID:'y',order:1,spanGaps:true});
-  if(vis.anxiety)push('Тревога',data.map(r=>r.anxiety),'#e24b4a',{t:.4});
-  if(vis.energy)push('Энергия',data.map(r=>r.energy),'#1d9e75',{t:.4});
-  if(vis.irritability)push('Раздражит.',data.map(r=>r.irritability),'#378add',{t:.4});
-  if(vis.racing)push('Мысли',data.map(r=>r.racing_thoughts),'#d4537e',{t:.4});
+  const s=v=>smoothing?ma(v):v;
+  if(vis.anxiety)push('Тревога',s(data.map(r=>r.anxiety)),'#e24b4a',{t:.4});
+  if(vis.energy)push('Энергия',s(data.map(r=>r.energy)),'#1d9e75',{t:.4});
+  if(vis.irritability)push('Раздражит.',s(data.map(r=>r.irritability)),'#378add',{t:.4});
+  if(vis.racing)push('Мысли',s(data.map(r=>r.racing_thoughts)),'#d4537e',{t:.4});
   if(vis.ai)push('AI',data.map(r=>r._ai??null),'#ba7517',{t:.3,dash:[5,3],ps:'triangle',pr:3});
-  // Сон: tension=0 (ломаные), уменьшенная амплитуда
   if(vis.sleep)push('Сон',data.map(r=>sleepVal(r.sleep_hours)),'#185fa5',{t:0,lw:1.5,pr:2});
   if(vis.smoked_line)ds.push({label:'Косяков',data:data.map(r=>smokedVal(r.smoked)),borderColor:'#3b6d11',backgroundColor:'rgba(59,109,17,.08)',tension:0.35,pointRadius:2,pointHoverRadius:5,borderWidth:1.5,fill:false,yAxisID:'y',order:2,spanGaps:true});
   if(vis.yoga_b)ds.push({label:'Йога',data:data.map(r=>r.yoga?2.5:2.0),borderColor:'#7f77dd',backgroundColor:'rgba(127,119,221,.08)',tension:0.3,pointRadius:2,pointHoverRadius:5,borderWidth:1.5,fill:false,yAxisID:'y',order:2,spanGaps:true});
@@ -346,6 +338,7 @@ function buildNoteDots(data){
 
 function tog(k){vis[k]=!vis[k];const b=document.getElementById('btn-'+k);if(b){b.classList.toggle('active',vis[k]);b.classList.toggle('inactive',!vis[k]);}updateYMin();rebuild();}
 function togOv(){overlayOn=!overlayOn;document.getElementById('btn-ov').classList.toggle('on',overlayOn);rebuild();}
+function toggleSmooth(){smoothing=!smoothing;document.getElementById('btn-smooth').classList.toggle('on',smoothing);rebuild();}
 function setRange(n,el){rangeN=n;dateFrom=null;dateTo=null;document.getElementById('df').value='';document.getElementById('dt').value='';document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');rebuild();}
 function setCustomRange(){dateFrom=document.getElementById('df').value||null;dateTo=document.getElementById('dt').value||null;rangeN=999;document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));rebuild();}
 function setStatus(cls,txt){document.getElementById('sdot').className=cls;document.getElementById('stxt').textContent=txt;}
@@ -359,28 +352,20 @@ async function refreshData(){
     const rows=sheetsToRows(p1);
     if(rows?.length){
       let agg=aggregateByDay(rows);
-      // Подгружаем Notes
       try{
         const r2=await fetch(SHEETS.notes);
         const p2=parseGviz(await r2.text());
         const notesRows=sheetsToRows(p2);
         if(notesRows?.length)agg=mergeNotes(agg,notesRows);
-        else{// нет Notes — всё равно собираем _ai из Active
-          agg=agg.map(row=>{row._ai=row.ai_score??null;if(row.mood_note)AI_NOTES.push({date:row.date,text:row.mood_note});return row;});
-        }
-      }catch{
-        agg=agg.map(row=>{row._ai=row.ai_score??null;return row;});
-      }
+        else{agg=agg.map(row=>{row._ai=row.ai_score??null;if(row.mood_note)AI_NOTES.push({date:row.date,text:row.mood_note});return row;});}
+      }catch{agg=agg.map(row=>{row._ai=row.ai_score??null;return row;});}
       DATA=agg;
       setStatus('ok',`Обновлено · ${DATA[DATA.length-1]?.date||'—'}`);
-    }else{
-      setStatus('err','Sheets недоступен — статика');
-    }
+    }else{setStatus('err','Sheets недоступен — статика');}
   }catch{setStatus('err','Ошибка сети — статика');}
   rebuild();btn.textContent='↻ Обновить';
 }
 
-// Zoom
 let zoomStart=null,zoomEnd=null,isDragging=false;
 function initZoom(){
   const canvas=document.getElementById('c1');const sel=document.getElementById('zoom-sel');
@@ -391,7 +376,6 @@ function initZoom(){
 }
 function resetZoom(){dateFrom=null;dateTo=null;rangeN=999;document.getElementById('df').value='';document.getElementById('dt').value='';document.getElementById('zoom-reset').style.display='none';document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));document.querySelector('.range-btn:last-of-type')?.classList.add('active');rebuild();}
 
-// Crosshair plugin
 const crosshairPlugin={
   id:'crosshair',
   afterDraw(chart){
@@ -403,9 +387,7 @@ const crosshairPlugin={
     ctx.setLineDash([3,3]);
     ctx.strokeStyle='rgba(44,44,42,.25)';
     ctx.lineWidth=1;
-    // вертикаль
     ctx.beginPath();ctx.moveTo(x,chartArea.top);ctx.lineTo(x,chartArea.bottom);ctx.stroke();
-    // горизонталь
     if(y!=null){ctx.beginPath();ctx.moveTo(chartArea.left,y);ctx.lineTo(chartArea.right,y);ctx.stroke();}
     ctx.restore();
   }
@@ -420,13 +402,11 @@ function attachCrosshair(canvas,chart){
     if(!ca||x<ca.left||x>ca.right||y<ca.top||y>ca.bottom){chart._crosshairX=null;chart._crosshairY=null;chart.draw();return;}
     chart._crosshairX=x;
     chart._crosshairY=y;
-    // tooltip
     const data=getD();
     const idx=Math.round((x-ca.left)/(ca.right-ca.left)*(data.length-1));
     const tt=document.getElementById('tt');
     if(idx>=0&&idx<data.length){
       const row=data[idx];
-      // ближайший датасет
       let nearest=null,minDist=Infinity;
       chart.data.datasets.forEach((ds,di)=>{
         if(!ds.label||ds.type==='bar')return;
