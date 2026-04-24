@@ -1,41 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Borderliner</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
+#auth-screen{position:fixed;inset:0;background:#f5f0e8;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+#auth-screen h2{color:#888780;font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
+#auth-input{background:#fff;border:1px solid #d3d1c7;border-radius:8px;color:#2c2c2a;font-size:14px;padding:10px 16px;outline:none;width:200px;text-align:center;letter-spacing:.15em;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
+#auth-input:focus{border-color:#ba7517;}
+#auth-error{color:#a32d2d;font-size:11px;opacity:0;transition:opacity .2s;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
 body{background:#f5f0e8;}
-#app{color:#2c2c2a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:12px 14px 60px;background:#f5f0e8;min-height:100vh;}
-h1{font-size:11px;font-weight:500;color:#888780;margin-bottom:10px;letter-spacing:.1em;text-transform:uppercase;}
-.controls{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;align-items:center;}
-.toggle-btn{padding:2px 8px;border-radius:20px;border:1.5px solid;font-size:10px;cursor:pointer;background:transparent;transition:opacity .15s;font-weight:500;white-space:nowrap;}
+#app{color:#2c2c2a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:20px 24px 100px;background:#f5f0e8;min-height:100vh;}
+h1{font-size:13px;font-weight:500;color:#888780;margin-bottom:14px;letter-spacing:.1em;text-transform:uppercase;}
+.controls{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;align-items:center;}
+.toggle-btn{padding:3px 10px;border-radius:20px;border:1.5px solid;font-size:11px;cursor:pointer;background:transparent;transition:opacity .15s;font-weight:500;white-space:nowrap;}
 .toggle-btn.active{opacity:1;}.toggle-btn.inactive{opacity:.25;}
 .sep{width:1px;background:#d3d1c7;align-self:stretch;margin:0 2px;}
-.overlay-btn{padding:2px 8px;border-radius:20px;border:1.5px solid #b4b2a9;font-size:10px;cursor:pointer;background:transparent;color:#888780;font-weight:500;}
+.overlay-btn{padding:3px 10px;border-radius:20px;border:1.5px solid #b4b2a9;font-size:11px;cursor:pointer;background:transparent;color:#888780;font-weight:500;}
 .overlay-btn.on{background:rgba(136,135,128,.15);color:#2c2c2a;border-color:#5f5e5a;}
-.range-row{display:flex;gap:5px;align-items:center;margin-bottom:8px;flex-wrap:wrap;}
-.range-btn{padding:2px 7px;border-radius:6px;border:1px solid #d3d1c7;font-size:10px;cursor:pointer;background:#ebe7dd;color:#888780;}
+.range-row{display:flex;gap:6px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
+.range-btn{padding:3px 9px;border-radius:6px;border:1px solid #d3d1c7;font-size:11px;cursor:pointer;background:#ebe7dd;color:#888780;}
 .range-btn.active{background:#d3d1c7;color:#2c2c2a;border-color:#888780;}
-.date-input{background:#ebe7dd;border:1px solid #d3d1c7;border-radius:6px;color:#888780;font-size:10px;padding:2px 5px;}
-.rl{font-size:10px;color:#b4b2a9;}
-#notes-bar{position:relative;height:22px;margin-bottom:3px;}
-.n-pin{position:absolute;transform:translateX(-50%);font-size:11px;top:2px;cursor:pointer;z-index:10;transition:transform .1s;}
-.n-pin:hover{transform:translateX(-50%) scale(1.4);}
-.n-vline{position:absolute;width:1px;background:rgba(186,117,23,.25);top:18px;transform:translateX(-50%);pointer-events:none;height:180px;}
-.n-popup{position:absolute;background:#fff8ee;border:1px solid rgba(186,117,23,.4);border-radius:6px;padding:4px 7px;font-size:9px;color:#854f0b;top:18px;transform:translateX(-50%);z-index:50;pointer-events:none;display:none;white-space:normal;max-width:200px;line-height:1.4;}
-#note-dots{position:relative;height:14px;margin-top:2px;}
-.n-dot{position:absolute;width:5px;height:5px;border-radius:50%;background:rgba(44,44,42,.2);transform:translateX(-50%);top:4px;cursor:pointer;}
-.n-dot:hover{background:rgba(44,44,42,.6);}
-.n-dot-pop{position:absolute;background:#fff;border:1px solid #d3d1c7;border-radius:6px;padding:4px 7px;font-size:9px;color:#2c2c2a;top:14px;transform:translateX(-50%);z-index:50;pointer-events:none;display:none;white-space:normal;max-width:220px;line-height:1.4;}
-.chart-wrap{background:#fff;border-radius:10px;border:1px solid #d3d1c7;padding:10px 10px 7px;margin-bottom:6px;box-shadow:0 1px 4px rgba(44,44,42,.06);}
+.date-input{background:#ebe7dd;border:1px solid #d3d1c7;border-radius:6px;color:#888780;font-size:11px;padding:3px 7px;}
+.rl{font-size:11px;color:#b4b2a9;}
+.chart-wrap{background:#fff;border-radius:12px;border:1px solid #d3d1c7;padding:14px 14px 10px;margin-bottom:8px;box-shadow:0 1px 4px rgba(44,44,42,.06);}
 .c1-rel{position:relative;}
 .zoom-sel{position:absolute;top:0;height:100%;background:rgba(186,117,23,.1);border-left:1px solid rgba(186,117,23,.5);border-right:1px solid rgba(186,117,23,.5);pointer-events:none;display:none;z-index:4;}
-#zoom-reset{display:none;padding:2px 7px;border-radius:6px;border:1px solid #ba7517;font-size:9px;cursor:pointer;background:transparent;color:#ba7517;margin-left:6px;}
-.tt{position:fixed;background:#fff;border:1px solid #d3d1c7;border-radius:6px;padding:5px 9px;font-size:11px;color:#2c2c2a;pointer-events:none;z-index:200;display:none;box-shadow:0 2px 8px rgba(44,44,42,.1);}
-#status{font-size:9px;color:#b4b2a9;margin-bottom:8px;display:flex;gap:8px;align-items:center;}
-#sdot{width:5px;height:5px;border-radius:50%;background:#b4b2a9;flex-shrink:0;}
+#zoom-reset{display:none;padding:2px 8px;border-radius:6px;border:1px solid #ba7517;font-size:10px;cursor:pointer;background:transparent;color:#ba7517;margin-left:8px;}
+.tt{position:fixed;background:#fff;border:1px solid #d3d1c7;border-radius:6px;padding:6px 10px;font-size:11px;color:#2c2c2a;pointer-events:none;z-index:200;display:none;box-shadow:0 2px 8px rgba(44,44,42,.1);}
+#status{font-size:10px;color:#b4b2a9;margin-bottom:12px;display:flex;gap:10px;align-items:center;}
+#sdot{width:6px;height:6px;border-radius:50%;background:#b4b2a9;flex-shrink:0;}
 #sdot.ok{background:#3b6d11;}#sdot.err{background:#a32d2d;}#sdot.spin{background:#ba7517;animation:pulse 1s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-#refresh-btn{position:fixed;bottom:16px;right:16px;background:#ba7517;color:#fff;border:none;border-radius:24px;padding:9px 18px;font-size:11px;font-weight:600;cursor:pointer;z-index:100;box-shadow:0 2px 8px rgba(186,117,23,.3);}
+#refresh-btn{position:fixed;bottom:28px;right:28px;background:#ba7517;color:#fff;border:none;border-radius:30px;padding:13px 26px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(186,117,23,.3);transition:all .2s;z-index:100;}
+#refresh-btn:hover{transform:translateY(-2px);}
+#refresh-btn.loading{opacity:.65;cursor:wait;}
+#note-dots{position:relative;height:18px;margin-top:3px;}
+.n-dot{position:absolute;width:6px;height:6px;border-radius:50%;background:#ba7517;transform:translateX(-50%);top:5px;cursor:pointer;opacity:.6;}
+.n-dot:hover{opacity:1;}
+.n-dot-pop{position:absolute;background:#fff8ee;border:1px solid rgba(186,117,23,.4);border-radius:6px;padding:5px 8px;font-size:9px;color:#633806;bottom:20px;z-index:50;pointer-events:none;display:none;white-space:normal;max-width:260px;line-height:1.5;}
 </style>
+</head>
+<body>
 
-<div id="app">
+<div id="auth-screen">
+  <h2>Borderliner</h2>
+  <input id="auth-input" type="password" placeholder="••••••••">
+  <div id="auth-error">Неверный пароль</div>
+</div>
+
+<div id="app" style="display:none">
   <h1>Borderliner · Mood Tracker</h1>
   <div id="status"><div id="sdot"></div><span id="stxt">—</span></div>
   <div class="range-row">
@@ -47,50 +63,66 @@ h1{font-size:11px;font-weight:500;color:#888780;margin-bottom:10px;letter-spacin
     <span class="rl">с</span><input class="date-input" type="date" id="df" onchange="setCustomRange()">
     <span class="rl">по</span><input class="date-input" type="date" id="dt" onchange="setCustomRange()">
   </div>
-  <div id="notes-bar" style="display:none"></div>
   <div class="controls" id="c1-controls">
     <button class="toggle-btn active" id="btn-anxiety" style="color:#e24b4a;border-color:#e24b4a" onclick="tog('anxiety')">Тревога</button>
     <button class="toggle-btn active" id="btn-energy" style="color:#1d9e75;border-color:#1d9e75" onclick="tog('energy')">Энергия</button>
     <button class="toggle-btn active" id="btn-irritability" style="color:#378add;border-color:#378add" onclick="tog('irritability')">Раздражит.</button>
-    <button class="toggle-btn active" id="btn-racing" style="color:#d4537e;border-color:#d4537e" onclick="tog('racing')">Мысли</button>
+    <button class="toggle-btn inactive" id="btn-racing" style="color:#d4537e;border-color:#d4537e" onclick="tog('racing')">Мысли</button>
     <div class="sep"></div>
-    <button class="toggle-btn active" id="btn-ai" style="color:#ba7517;border-color:#ba7517" onclick="tog('ai')">AI</button>
+    <button class="toggle-btn inactive" id="btn-ai" style="color:#ba7517;border-color:#ba7517" onclick="tog('ai')">AI</button>
     <div class="sep"></div>
-    <button class="toggle-btn active" id="btn-sleep" style="color:#185fa5;border-color:#185fa5" onclick="tog('sleep')">Сон</button>
-    <button class="toggle-btn active" id="btn-smoked_line" style="color:#3b6d11;border-color:#3b6d11" onclick="tog('smoked_line')">Косяков</button>
+    <button class="toggle-btn inactive" id="btn-sleep" style="color:#185fa5;border-color:#185fa5" onclick="tog('sleep')">Сон</button>
+    <button class="toggle-btn inactive" id="btn-smoked_line" style="color:#3b6d11;border-color:#3b6d11" onclick="tog('smoked_line')">Косяков</button>
     <div class="sep"></div>
-    <button class="toggle-btn active" id="btn-yoga_b" style="color:#7f77dd;border-color:#7f77dd" onclick="tog('yoga_b')">Йога</button>
-    <button class="toggle-btn active" id="btn-modafinil_b" style="color:#d85a30;border-color:#d85a30" onclick="tog('modafinil_b')">Модафинил</button>
+    <button class="toggle-btn inactive" id="btn-yoga_b" style="color:#7f77dd;border-color:#7f77dd" onclick="tog('yoga_b')">Йога</button>
+    <button class="toggle-btn inactive" id="btn-modafinil_b" style="color:#d85a30;border-color:#d85a30" onclick="tog('modafinil_b')">Модафинил</button>
   </div>
   <div class="chart-wrap">
-    <div style="display:flex;align-items:center;margin-bottom:5px;gap:6px;">
-      <button class="overlay-btn" id="btn-ov" onclick="togOv()">Наложить активность</button>
-      <button class="overlay-btn" id="btn-smooth" onclick="toggleSmooth()">Сглаживание</button>
-      <button id="zoom-reset" onclick="resetZoom()">✕ Сброс</button>
+    <div style="display:flex;align-items:center;margin-bottom:6px;">
+      <button class="overlay-btn" id="btn-ov" onclick="togOv()">⊞ Наложить активность</button>
+      <button id="zoom-reset" onclick="resetZoom()">✕ Сброс zoom</button>
     </div>
-    <div id="c1-top-zone" style="position:relative;background:rgba(0,0,0,.03);border-radius:6px 6px 0 0;padding:4px 6px;border:1px solid #d3d1c7;border-bottom:none;overflow:hidden;">
-      <div id="c1-btn-strip" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-height:18px;"></div>
+    <div id="c1-top-zone" style="background:rgba(0,0,0,.03);border-radius:6px 6px 0 0;padding:5px 8px;border:1px solid #d3d1c7;border-bottom:none;">
+      <div id="c1-btn-strip" style="display:flex;flex-wrap:wrap;gap:5px;align-items:center;min-height:22px;"></div>
     </div>
     <div class="c1-rel" style="border-radius:0 0 6px 6px;overflow:hidden;border:1px solid #d3d1c7;border-top:none;">
       <div class="zoom-sel" id="zoom-sel"></div>
-      <canvas id="c1" height="140"></canvas>
+      <canvas id="c1" height="160"></canvas>
     </div>
     <div id="note-dots"></div>
   </div>
   <div class="controls">
-    <button class="toggle-btn active" id="btn-meditate" style="color:#533ab7;border-color:#533ab7" onclick="tog('meditate')">Медитация</button>
-    <button class="toggle-btn active" id="btn-work" style="color:#3b6d11;border-color:#3b6d11" onclick="tog('work')">Работа</button>
-    <button class="toggle-btn active" id="btn-messages" style="color:#993556;border-color:#993556" onclick="tog('messages')">Сообщения</button>
+    <button class="toggle-btn active" id="btn-meditate" style="color:#533ab7;border-color:#533ab7" onclick="tog('meditate')">🧘 Медитация</button>
+    <button class="toggle-btn active" id="btn-work" style="color:#3b6d11;border-color:#3b6d11" onclick="tog('work')">💼 Работа</button>
+    <button class="toggle-btn active" id="btn-messages" style="color:#993556;border-color:#993556" onclick="tog('messages')">💬 Сообщения</button>
   </div>
   <div class="chart-wrap">
-    <canvas id="c2" height="80"></canvas>
+    <canvas id="c2" height="100"></canvas>
   </div>
 </div>
-<div class="tt" id="tt"></div>
-<button id="refresh-btn" onclick="refreshData()">↻ Обновить</button>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<div class="tt" id="tt"></div>
+<button id="refresh-btn" style="display:none" onclick="refreshData()">↻ Обновить</button>
+
 <script>
+const PWD_HASH='5d5b09f6dcb2d53a5fffc60c4ac0d55fabdf556069d6631545f42aa6e3500f2e';
+
+async function sha256(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
+async function checkAuth(){
+  const h=await sha256(document.getElementById('auth-input').value);
+  if(h===PWD_HASH){
+    document.getElementById('auth-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    document.getElementById('refresh-btn').style.display='block';
+    init();
+  }else{
+    const e=document.getElementById('auth-error');e.style.opacity='1';
+    document.getElementById('auth-input').value='';
+    setTimeout(()=>e.style.opacity='0',2000);
+  }
+}
+document.getElementById('auth-input').addEventListener('keydown',e=>{if(e.key==='Enter')checkAuth();});
+
 const SHEETS={
   main:'https://docs.google.com/spreadsheets/d/1a6fCFKO2y6r04Z2U8N495nzN1S9-SEas_21ldnqFBcY/gviz/tq?tqx=out:json&sheet=Active',
   notes:'https://docs.google.com/spreadsheets/d/1a6fCFKO2y6r04Z2U8N495nzN1S9-SEas_21ldnqFBcY/gviz/tq?tqx=out:json&sheet=Notes',
@@ -105,53 +137,52 @@ function normalizeVal(v){
 }
 
 const STATIC=[
-  {date:"2026-02-15",energy:6,anxiety:3,irritability:6,racing_thoughts:null,sleep_hours:8,smoked:2,yoga:1,modafinil:0,meditate_minutes:null,productivity_hours:3,_messages:1,_ai:5,mood_note:""},
-  {date:"2026-02-16",energy:6,anxiety:5,irritability:4,racing_thoughts:null,sleep_hours:10,smoked:2,yoga:0,modafinil:0,meditate_minutes:14,productivity_hours:3,_messages:1,_ai:7,mood_note:"Немотивированные волны агрессии, пропуск кветиапина"},
-  {date:"2026-02-17",energy:4.5,anxiety:6,irritability:4.5,racing_thoughts:null,sleep_hours:10,smoked:2,yoga:1,modafinil:0,meditate_minutes:10,productivity_hours:3,_messages:2,_ai:4,mood_note:"Самокритика, усталость"},
-  {date:"2026-02-18",energy:7,anxiety:3,irritability:7,racing_thoughts:null,sleep_hours:7,smoked:2,yoga:1,modafinil:0,meditate_minutes:63,productivity_hours:4,_messages:1,_ai:6,mood_note:""},
-  {date:"2026-02-19",energy:5,anxiety:6,irritability:4,racing_thoughts:null,sleep_hours:10,smoked:2,yoga:0,modafinil:0,meditate_minutes:24,productivity_hours:0,_messages:1,_ai:4,mood_note:"Беспокоит поиск работы"},
-  {date:"2026-02-20",energy:6,anxiety:5,irritability:6,racing_thoughts:null,sleep_hours:8,smoked:2,yoga:0,modafinil:0,meditate_minutes:0,productivity_hours:5,_messages:1,_ai:5,mood_note:""},
-  {date:"2026-02-21",energy:3,anxiety:7,irritability:4,racing_thoughts:null,sleep_hours:7,smoked:2,yoga:1,modafinil:0,meditate_minutes:36,productivity_hours:0,_messages:3,_ai:7,mood_note:"Адская тревога + гиперфокус — смешанное"},
-  {date:"2026-02-22",energy:4.5,anxiety:4,irritability:5,racing_thoughts:null,sleep_hours:9,smoked:2,yoga:1,modafinil:0,meditate_minutes:0,productivity_hours:0,_messages:2,_ai:5,mood_note:""},
-  {date:"2026-02-23",energy:6,anxiety:4,irritability:5,racing_thoughts:null,sleep_hours:6,smoked:2,yoga:0,modafinil:0,meditate_minutes:10,productivity_hours:0,_messages:1,_ai:5,mood_note:""},
-  {date:"2026-02-24",energy:5,anxiety:3.5,irritability:5.5,racing_thoughts:null,sleep_hours:6,smoked:2,yoga:1,modafinil:0,meditate_minutes:53,productivity_hours:2,_messages:2,_ai:6,mood_note:""},
-  {date:"2026-02-25",energy:5,anxiety:4.5,irritability:5,racing_thoughts:null,sleep_hours:11,smoked:2,yoga:0,modafinil:0,meditate_minutes:null,productivity_hours:null,_messages:2,_ai:4,mood_note:"Гашиш тяжёлый, пересон 13ч"},
-  {date:"2026-02-26",energy:6.5,anxiety:4.5,irritability:4.5,racing_thoughts:null,sleep_hours:7,smoked:2,yoga:1,modafinil:0,meditate_minutes:18,productivity_hours:3,_messages:2,_ai:5,mood_note:""},
-  {date:"2026-02-27",energy:4.3,anxiety:3.7,irritability:5.3,racing_thoughts:null,sleep_hours:6,smoked:2,yoga:1,modafinil:0,meditate_minutes:42,productivity_hours:3,_messages:3,_ai:5,mood_note:""},
-  {date:"2026-02-28",energy:6.2,anxiety:4,irritability:6,racing_thoughts:null,sleep_hours:7,smoked:2,yoga:1,modafinil:0,meditate_minutes:50,productivity_hours:4,_messages:4,_ai:6,mood_note:""},
-  {date:"2026-03-01",energy:5.5,anxiety:4,irritability:6,racing_thoughts:null,sleep_hours:8,smoked:0,yoga:1,modafinil:0,meditate_minutes:0,productivity_hours:2,_messages:2,_ai:5,mood_note:"Не курил весь день"},
-  {date:"2026-03-02",energy:4,anxiety:5,irritability:5,racing_thoughts:null,sleep_hours:7,smoked:2,yoga:0,modafinil:0,meditate_minutes:0,productivity_hours:0,_messages:2,_ai:4,mood_note:"Рано покурил"},
-  {date:"2026-03-03",energy:3.5,anxiety:5.5,irritability:4,racing_thoughts:null,sleep_hours:9,smoked:2,yoga:1,modafinil:0,meditate_minutes:19,productivity_hours:0,_messages:2,_ai:4,mood_note:"Импульсы, рефлексия о зависимости"},
-  {date:"2026-03-04",energy:3.2,anxiety:5.5,irritability:4,racing_thoughts:null,sleep_hours:8,smoked:2,yoga:0,modafinil:0,meditate_minutes:24,productivity_hours:0,_messages:4,_ai:3,mood_note:"Депрессивные маркеры, дедлайны горят"},
-  {date:"2026-03-05",energy:6,anxiety:6,irritability:5,racing_thoughts:null,sleep_hours:10,smoked:2,yoga:0,modafinil:0,meditate_minutes:40,productivity_hours:0,_messages:1,_ai:5,mood_note:""},
-  {date:"2026-03-06",energy:6,anxiety:6,irritability:6,racing_thoughts:null,sleep_hours:8,smoked:2,yoga:1,modafinil:0,meditate_minutes:30,productivity_hours:0,_messages:1,_ai:5,mood_note:""},
-  {date:"2026-03-07",energy:3,anxiety:2,irritability:4,racing_thoughts:null,sleep_hours:6,smoked:0,yoga:1,modafinil:0,meditate_minutes:34,productivity_hours:0,_messages:2,_ai:6,mood_note:"Половина марки, психологически радостно"},
-  {date:"2026-03-08",energy:4,anxiety:5,irritability:4,racing_thoughts:null,sleep_hours:9,smoked:0,yoga:1,modafinil:0,meditate_minutes:50,productivity_hours:0,_messages:4,_ai:6,mood_note:""},
-  {date:"2026-03-09",energy:7,anxiety:4.5,irritability:5.5,racing_thoughts:null,sleep_hours:8,smoked:0,yoga:0,modafinil:0,meditate_minutes:0,productivity_hours:7,_messages:2,_ai:7,mood_note:"Критерии победы над зависимостью"},
-  {date:"2026-03-10",energy:6.2,anxiety:3,irritability:6.3,racing_thoughts:null,sleep_hours:9,smoked:0,yoga:0,modafinil:0,meditate_minutes:20,productivity_hours:2,_messages:10,_ai:8,mood_note:"Гипомания — сложно сидеть, куча сил"},
-  {date:"2026-03-11",energy:6.3,anxiety:3,irritability:5.3,racing_thoughts:null,sleep_hours:8,smoked:0,yoga:1,modafinil:0,meditate_minutes:30,productivity_hours:3,_messages:4,_ai:6,mood_note:""},
-  {date:"2026-03-12",energy:6.3,anxiety:3,irritability:7,racing_thoughts:null,sleep_hours:4,smoked:1,yoga:1,modafinil:0,meditate_minutes:70,productivity_hours:2,_messages:7,_ai:7,mood_note:"Габапентин+курение=гипомания вечером"},
-  {date:"2026-03-13",energy:5,anxiety:3.5,irritability:5,racing_thoughts:null,sleep_hours:7,smoked:0,yoga:1,modafinil:0,meditate_minutes:null,productivity_hours:null,_messages:4,_ai:7,mood_note:"Овершеринг, быстрая речь"},
-  {date:"2026-03-14",energy:7,anxiety:5,irritability:4,racing_thoughts:null,sleep_hours:8,smoked:1,yoga:0,modafinil:0,meditate_minutes:32,productivity_hours:2,_messages:2,_ai:6,mood_note:"Злость при маме, дисфория"},
-  {date:"2026-03-15",energy:4,anxiety:6,irritability:4.5,racing_thoughts:null,sleep_hours:9,smoked:2,yoga:0,modafinil:0,meditate_minutes:0,productivity_hours:0,_messages:7,_ai:4,mood_note:"Шторм: тревога 8, поводок, слёзы"},
-  {date:"2026-03-16",energy:5,anxiety:5,irritability:4.5,racing_thoughts:null,sleep_hours:12,smoked:2,yoga:0,modafinil:0,meditate_minutes:0,productivity_hours:1,_messages:4,_ai:4,mood_note:"Боли в теле, ругань с мамой"},
-  {date:"2026-03-17",energy:4,anxiety:4.3,irritability:3.7,racing_thoughts:null,sleep_hours:9,smoked:2,yoga:0,modafinil:1,meditate_minutes:20,productivity_hours:0,_messages:7,_ai:5,mood_note:"После Светы — решение закрыть, меланхолия"},
-];
-
-let AI_NOTES=[
-  {date:"2026-02-16",text:"Дисфорическая гипомания"},
-  {date:"2026-02-21",text:"Смешанное состояние"},
-  {date:"2026-03-04",text:"Депрессивное дно"},
-  {date:"2026-03-10",text:"Гипомания — пик"},
-  {date:"2026-03-15",text:"Шторм, смешанное"},
+  {date:"2026-02-15",energy:6,anxiety:3,irritability:6,sleep_hours:8,smoked:2,yoga:1,modafinil:0,meditate_minutes:null,productivity_hours:3,_messages:1,_ai:5,mood_note:""},
+  {date:"2026-02-16",energy:6,anxiety:5,irritability:4,sleep_hours:10,smoked:2,yoga:0,modafinil:0,meditate_minutes:14,productivity_hours:3,_messages:1,_ai:7,mood_note:"Немотивированные волны агрессии, пропуск кветиапина"},
+  {date:"2026-02-17",energy:4.5,anxiety:6,irritability:4.5,sleep_hours:10,smoked:2,yoga:1,modafinil:0,meditate_minutes:10,productivity_hours:3,_messages:2,_ai:4,mood_note:"Самокритика, усталость"},
+  {date:"2026-02-18",energy:7,anxiety:3,irritability:7,sleep_hours:7,smoked:2,yoga:1,modafinil:0,meditate_minutes:63,productivity_hours:4,_messages:1,_ai:6,mood_note:""},
+  {date:"2026-02-19",energy:5,anxiety:6,irritability:4,sleep_hours:10,smoked:2,yoga:0,modafinil:0,meditate_minutes:24,productivity_hours:0,_messages:1,_ai:4,mood_note:"Беспокоит поиск работы"},
+  {date:"2026-02-20",energy:6,anxiety:5,irritability:6,sleep_hours:8,smoked:2,yoga:0,modafinil:0,meditate_minutes:0,productivity_hours:5,_messages:1,_ai:5,mood_note:""},
+  {date:"2026-02-21",energy:3,anxiety:7,irritability:4,sleep_hours:7,smoked:2,yoga:1,modafinil:0,meditate_minutes:36,productivity_hours:0,_messages:3,_ai:7,mood_note:"Адская тревога + гиперфокус — смешанное"},
+  {date:"2026-02-22",energy:4.5,anxiety:4,irritability:5,sleep_hours:9,smoked:2,yoga:1,modafinil:0,meditate_minutes:0,productivity_hours:0,_messages:2,_ai:5,mood_note:""},
+  {date:"2026-02-23",energy:6,anxiety:4,irritability:5,sleep_hours:6,smoked:2,yoga:0,modafinil:0,meditate_minutes:10,productivity_hours:0,_messages:1,_ai:5,mood_note:""},
+  {date:"2026-02-24",energy:5,anxiety:3.5,irritability:5.5,sleep_hours:6,smoked:2,yoga:1,modafinil:0,meditate_minutes:53,productivity_hours:2,_messages:2,_ai:6,mood_note:""},
+  {date:"2026-02-25",energy:5,anxiety:4.5,irritability:5,sleep_hours:11,smoked:2,yoga:0,modafinil:0,meditate_minutes:null,productivity_hours:null,_messages:2,_ai:4,mood_note:"Гашиш тяжёлый, пересон 13ч"},
+  {date:"2026-02-26",energy:6.5,anxiety:4.5,irritability:4.5,sleep_hours:7,smoked:2,yoga:1,modafinil:0,meditate_minutes:18,productivity_hours:3,_messages:2,_ai:5,mood_note:""},
+  {date:"2026-02-27",energy:4.3,anxiety:3.7,irritability:5.3,sleep_hours:6,smoked:2,yoga:1,modafinil:0,meditate_minutes:42,productivity_hours:3,_messages:3,_ai:5,mood_note:""},
+  {date:"2026-02-28",energy:6.2,anxiety:4,irritability:6,sleep_hours:7,smoked:2,yoga:1,modafinil:0,meditate_minutes:50,productivity_hours:4,_messages:4,_ai:6,mood_note:""},
+  {date:"2026-03-01",energy:5.5,anxiety:4,irritability:6,sleep_hours:8,smoked:0,yoga:1,modafinil:0,meditate_minutes:0,productivity_hours:2,_messages:2,_ai:5,mood_note:"Не курил весь день"},
+  {date:"2026-03-02",energy:4,anxiety:5,irritability:5,sleep_hours:7,smoked:2,yoga:0,modafinil:0,meditate_minutes:0,productivity_hours:0,_messages:2,_ai:4,mood_note:"Рано покурил"},
+  {date:"2026-03-03",energy:3.5,anxiety:5.5,irritability:4,sleep_hours:9,smoked:2,yoga:1,modafinil:0,meditate_minutes:19,productivity_hours:0,_messages:2,_ai:4,mood_note:"Импульсы, рефлексия о зависимости"},
+  {date:"2026-03-04",energy:3.2,anxiety:5.5,irritability:4,sleep_hours:8,smoked:2,yoga:0,modafinil:0,meditate_minutes:24,productivity_hours:0,_messages:4,_ai:3,mood_note:"Депрессивные маркеры, дедлайны горят"},
+  {date:"2026-03-05",energy:6,anxiety:6,irritability:5,sleep_hours:10,smoked:2,yoga:0,modafinil:0,meditate_minutes:40,productivity_hours:0,_messages:1,_ai:5,mood_note:""},
+  {date:"2026-03-06",energy:6,anxiety:6,irritability:6,sleep_hours:8,smoked:2,yoga:1,modafinil:0,meditate_minutes:30,productivity_hours:0,_messages:1,_ai:5,mood_note:""},
+  {date:"2026-03-07",energy:3,anxiety:2,irritability:4,sleep_hours:6,smoked:0,yoga:1,modafinil:0,meditate_minutes:34,productivity_hours:0,_messages:2,_ai:6,mood_note:"Половина марки, психологически радостно"},
+  {date:"2026-03-08",energy:4,anxiety:5,irritability:4,sleep_hours:9,smoked:0,yoga:1,modafinil:0,meditate_minutes:50,productivity_hours:0,_messages:4,_ai:6,mood_note:""},
+  {date:"2026-03-09",energy:7,anxiety:4.5,irritability:5.5,sleep_hours:8,smoked:0,yoga:0,modafinil:0,meditate_minutes:0,productivity_hours:7,_messages:2,_ai:7,mood_note:"Критерии победы над зависимостью"},
+  {date:"2026-03-10",energy:6.2,anxiety:3,irritability:6.3,sleep_hours:9,smoked:0,yoga:0,modafinil:0,meditate_minutes:20,productivity_hours:2,_messages:10,_ai:8,mood_note:"Гипомания — сложно сидеть, куча сил"},
+  {date:"2026-03-11",energy:6.3,anxiety:3,irritability:5.3,sleep_hours:8,smoked:0,yoga:1,modafinil:0,meditate_minutes:30,productivity_hours:3,_messages:4,_ai:6,mood_note:""},
+  {date:"2026-03-12",energy:6.3,anxiety:3,irritability:7,sleep_hours:4,smoked:1,yoga:1,modafinil:0,meditate_minutes:70,productivity_hours:2,_messages:7,_ai:7,mood_note:"Габапентин+курение=гипомания вечером"},
+  {date:"2026-03-13",energy:5,anxiety:3.5,irritability:5,sleep_hours:7,smoked:0,yoga:1,modafinil:0,meditate_minutes:null,productivity_hours:null,_messages:4,_ai:7,mood_note:"Овершеринг, быстрая речь"},
+  {date:"2026-03-14",energy:7,anxiety:5,irritability:4,sleep_hours:8,smoked:1,yoga:0,modafinil:0,meditate_minutes:32,productivity_hours:2,_messages:2,_ai:6,mood_note:"Злость при маме, дисфория"},
+  {date:"2026-03-15",energy:4,anxiety:6,irritability:4.5,sleep_hours:9,smoked:2,yoga:0,modafinil:0,meditate_minutes:0,productivity_hours:0,_messages:7,_ai:4,mood_note:"Шторм: тревога 8, поводок, слёзы"},
+  {date:"2026-03-16",energy:5,anxiety:5,irritability:4.5,sleep_hours:12,smoked:2,yoga:0,modafinil:0,meditate_minutes:0,productivity_hours:1,_messages:4,_ai:4,mood_note:"Боли в теле, ругань с мамой"},
+  {date:"2026-03-17",energy:4,anxiety:4.3,irritability:3.7,sleep_hours:9,smoked:2,yoga:0,modafinil:1,meditate_minutes:20,productivity_hours:0,_messages:7,_ai:5,mood_note:"После Светы — решение закрыть, меланхолия"},
 ];
 
 let DATA=[...STATIC];
+let ALL_NOTES=STATIC.filter(r=>r.mood_note).map(r=>({date:r.date,text:r.mood_note}));
 const vis={anxiety:true,energy:true,irritability:true,racing:false,ai:false,sleep:false,smoked_line:false,meditate:true,work:true,messages:true,yoga_b:false,modafinil_b:false};
-let dateFrom=null,dateTo=null,rangeN=999,overlayOn=false,smoothing=false,c1,c2;
+let dateFrom=null,dateTo=null,rangeN=999,overlayOn=false,c1,c2;
 
 function parseGviz(raw){const m=raw.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);if(!m)return null;try{return JSON.parse(m[1]);}catch{return null;}}
-
+function gvizDateToISO(v){
+  if(!v)return null;
+  if(typeof v==='string'){const m=v.match(/Date\((\d+),(\d+),(\d+)/);if(m)return new Date(+m[1],+m[2],+m[3]).toISOString().slice(0,10);return v.slice(0,10);}
+  if(v instanceof Date)return v.toISOString().slice(0,10);
+  if(typeof v==='number'&&v>40000)return new Date((v-25569)*86400000).toISOString().slice(0,10);
+  return String(v).slice(0,10);
+}
 function sheetsToRows(parsed){
   if(!parsed?.table)return null;
   const cols=parsed.table.cols.map(c=>c.label||c.id);
@@ -160,40 +191,20 @@ function sheetsToRows(parsed){
     cols.forEach((col,i)=>{
       if(col.startsWith('#'))return;
       const mapped=COL_MAP[col]||col;
-      const cell=row.c?.[i];
-      let v=cell?.v??null;
-      v=normalizeVal(v);
-      obj[mapped]=v;
+      obj[mapped]=normalizeVal(row.c?.[i]?.v??null);
     });
     return obj;
   });
 }
-
-function gvizDateToISO(v){
-  if(!v)return null;
-  if(typeof v==='string'){
-    const m=v.match(/Date\((\d+),(\d+),(\d+)/);
-    if(m){const d=new Date(+m[1],+m[2],+m[3]);return d.toISOString().slice(0,10);}
-    return v.slice(0,10);
-  }
-  if(v instanceof Date)return v.toISOString().slice(0,10);
-  if(typeof v==='number'&&v>40000){const d=new Date((v-25569)*86400000);return d.toISOString().slice(0,10);}
-  return String(v).slice(0,10);
-}
-
 function aggregateByDay(rows){
   const byDate={};
   rows.forEach(row=>{
-    let d=row.date||row.Date||row.created_at;
-    if(!d)return;
-    d=gvizDateToISO(d);
-    if(!d)return;
-    if(!byDate[d])byDate[d]=[];
-    byDate[d].push(row);
+    let d=row.date||row.Date||row.created_at;if(!d)return;
+    d=gvizDateToISO(d);if(!d)return;
+    if(!byDate[d])byDate[d]=[];byDate[d].push(row);
   });
   return Object.keys(byDate).sort().map(date=>{
-    const g=byDate[date];
-    const agg={date,_messages:g.length};
+    const g=byDate[date];const agg={date,_messages:g.length};
     const keys=new Set(g.flatMap(r=>Object.keys(r)));
     keys.forEach(col=>{
       if(['date','Date','created_at'].includes(col))return;
@@ -207,257 +218,220 @@ function aggregateByDay(rows){
       else if(rule==='notes'){agg[col]=vals.filter(Boolean).join(' | ');}
     });
     if(!agg.sleep_hours&&agg.sleep_time&&agg.wake_time){
-      try{
-        const[sh,sm]=String(agg.sleep_time).split(':').map(Number);
-        const[wh,wm]=String(agg.wake_time).split(':').map(Number);
-        let mins=(wh*60+wm)-(sh*60+sm);
-        if(mins<0)mins+=1440;
-        agg.sleep_hours=+(mins/60).toFixed(1);
-      }catch{}
+      try{const[sh,sm]=String(agg.sleep_time).split(':').map(Number);const[wh,wm]=String(agg.wake_time).split(':').map(Number);let mins=(wh*60+wm)-(sh*60+sm);if(mins<0)mins+=1440;agg.sleep_hours=+(mins/60).toFixed(1);}catch{}
     }
     return agg;
   });
 }
-
-function mergeNotes(mainAgg, notesRows){
+function buildAllNotes(mainAgg,notesRows){
   const byDate={};
-  notesRows.forEach(r=>{
-    let d=r.created_at||r.date;
-    if(!d)return;
-    d=gvizDateToISO(d);
-    if(!d)return;
-    if(!byDate[d])byDate[d]=[];
-    byDate[d].push(r);
+  mainAgg.forEach(row=>{
+    row._ai=row.ai_score??null;
+    if(row.mood_note){if(!byDate[row.date])byDate[row.date]=[];byDate[row.date].push(row.mood_note);}
   });
-
-  AI_NOTES=[];
-
-  return mainAgg.map(row=>{
-    const nd=byDate[row.date]||[];
-    const scores=[];
-    if(row.ai_score!=null)scores.push(+row.ai_score);
-    nd.forEach(n=>{if(n.ai_score!=null)scores.push(+n.ai_score);});
-    row._ai=scores.length?scores.reduce((a,b)=>a+b)/scores.length:null;
-
-    const notes=[];
-    if(row.mood_note)notes.push(row.mood_note);
-    nd.forEach(n=>{if(n.note)notes.push(n.note);});
-    if(notes.length)AI_NOTES.push({date:row.date,text:notes.join(' · ')});
-
-    return row;
-  });
+  if(notesRows){
+    notesRows.forEach(r=>{
+      let d=r.created_at||r.date;if(!d)return;
+      d=gvizDateToISO(d);if(!d)return;
+      if(r.note){if(!byDate[d])byDate[d]=[];byDate[d].push(r.note);}
+      const row=mainAgg.find(x=>x.date===d);
+      if(row&&r.ai_score!=null){
+        const scores=[row._ai,+r.ai_score].filter(x=>x!=null);
+        row._ai=scores.length?scores.reduce((a,b)=>a+b)/scores.length:null;
+      }
+    });
+  }
+  ALL_NOTES=Object.entries(byDate).map(([date,texts])=>({date,text:texts.join(' · ')}));
 }
 
 function getD(){let d=DATA;if(dateFrom)d=d.filter(r=>r.date>=dateFrom);if(dateTo)d=d.filter(r=>r.date<=dateTo);if(rangeN<999&&!dateFrom&&!dateTo)d=d.slice(-rangeN);return d;}
 function ma(arr){return arr.map((v,i)=>{const s=arr.slice(Math.max(0,i-1),i+2).filter(x=>x!=null);return s.length?s.reduce((a,b)=>a+b)/s.length:null;});}
-
-function sleepVal(h){if(h==null)return null;return Math.max(0,Math.min(10,(h-4)/8*6+2));}
-function smokedVal(n){if(n==null)return null;if(n===0)return 0;return Math.min(n,10);}
+function sleepVal(h){if(h==null)return null;return Math.max(0,(h-4)/8*6+2);}
+function smokedVal(n){if(n==null)return null;if(n===0)return 0;return Math.min(n,8);}
 function meditateVal(m){return m!=null?Math.min(m,100)/10:null;}
 function workVal(h){return h!=null?Math.min(h,10):null;}
-function getYMin(){if(!vis.smoked_line&&!vis.yoga_b&&!vis.modafinil_b)return 1.8;const data=getD();if(vis.smoked_line&&data.some(r=>(r.smoked??0)>0))return-0.5;if(vis.yoga_b&&data.some(r=>r.yoga))return-0.5;if(vis.modafinil_b&&data.some(r=>r.modafinil))return-0.5;return 1.8;}
-function updateYMin(){if(!c1)return;const nm=getYMin();if(c1.options.scales.y.min!==nm){c1.options.scales.y.min=nm;c1.options.scales.ySleep.min=nm;}c1.options.scales.ySleep.display=!!vis.sleep;c1.update('none');}
+
+function computeYMax(data){
+  const vals=[];
+  data.forEach(r=>{
+    ['anxiety','energy','irritability','racing_thoughts'].forEach(f=>{if(r[f]!=null)vals.push(r[f]);});
+    if(vis.ai&&r._ai!=null)vals.push(r._ai);
+    if(vis.sleep&&r.sleep_hours!=null)vals.push(sleepVal(r.sleep_hours));
+    if(vis.smoked_line&&r.smoked!=null)vals.push(smokedVal(r.smoked));
+  });
+  if(!vals.length)return 10;
+  return Math.ceil(Math.max(...vals))+0.5;
+}
+function computeYMin(data){
+  if(!vis.smoked_line&&!vis.yoga_b&&!vis.modafinil_b)return 1.5;
+  if(vis.smoked_line&&data.some(r=>(r.smoked??0)>0))return -0.5;
+  if((vis.yoga_b&&data.some(r=>r.yoga))||(vis.modafinil_b&&data.some(r=>r.modafinil)))return -0.5;
+  return 1.5;
+}
 
 function buildC1ds(data){
   const ds=[];
   if(overlayOn){
-    const OV_BASE=3,OV_TOP=9,OV_H=OV_TOP-OV_BASE;
-    [[data.map(r=>r.meditate_minutes!=null?OV_BASE+Math.min(r.meditate_minutes,100)/100*OV_H:null),'rgba(83,58,183,.12)'],
-     [data.map(r=>r.productivity_hours!=null?OV_BASE+Math.min(r.productivity_hours,10)/10*OV_H:null),'rgba(59,109,17,.12)'],
-     [data.map(r=>r._messages!=null?OV_BASE+Math.min(r._messages,12)/12*OV_H:null),'rgba(153,53,86,.12)'],
+    const OV_BASE=2,OV_TOP=computeYMax(data)-0.5,OV_H=Math.max(1,OV_TOP-OV_BASE);
+    [[data.map(r=>r.meditate_minutes!=null?OV_BASE+Math.min(r.meditate_minutes,100)/100*OV_H:null),'rgba(83,58,183,.1)'],
+     [data.map(r=>r.productivity_hours!=null?OV_BASE+Math.min(r.productivity_hours,10)/10*OV_H:null),'rgba(59,109,17,.1)'],
+     [data.map(r=>r._messages!=null?OV_BASE+Math.min(r._messages,12)/12*OV_H:null),'rgba(153,53,86,.1)'],
     ].forEach(([d,c])=>ds.push({type:'bar',label:'',data:d,backgroundColor:c,borderWidth:0,barPercentage:.95,base:OV_BASE,yAxisID:'y',order:20}));
   }
-  const push=(label,data,color,opts={})=>ds.push({label,data,borderColor:color,backgroundColor:'transparent',tension:opts.t||0.35,pointRadius:opts.pr??2,pointHoverRadius:5,borderWidth:opts.lw||2,borderDash:opts.dash,fill:false,pointStyle:opts.ps||'circle',yAxisID:'y',order:1,spanGaps:true});
-  const s=v=>smoothing?ma(v):v;
-  if(vis.anxiety)push('Тревога',s(data.map(r=>r.anxiety)),'#e24b4a',{t:.4});
-  if(vis.energy)push('Энергия',s(data.map(r=>r.energy)),'#1d9e75',{t:.4});
-  if(vis.irritability)push('Раздражит.',s(data.map(r=>r.irritability)),'#378add',{t:.4});
-  if(vis.racing)push('Мысли',s(data.map(r=>r.racing_thoughts)),'#d4537e',{t:.4});
+  const push=(label,d,color,opts={})=>ds.push({label,data:d,borderColor:color,backgroundColor:'transparent',tension:opts.t||0.35,pointRadius:opts.pr??2,pointHoverRadius:5,borderWidth:opts.lw||2,borderDash:opts.dash,fill:false,pointStyle:opts.ps||'circle',yAxisID:'y',order:1,spanGaps:true});
+  if(vis.anxiety)push('Тревога',ma(data.map(r=>r.anxiety)),'#e24b4a',{t:.4});
+  if(vis.energy)push('Энергия',ma(data.map(r=>r.energy)),'#1d9e75',{t:.4});
+  if(vis.irritability)push('Раздражит.',ma(data.map(r=>r.irritability)),'#378add',{t:.4});
+  if(vis.racing)push('Мысли',ma(data.map(r=>r.racing_thoughts)),'#d4537e',{t:.4});
   if(vis.ai)push('AI',data.map(r=>r._ai??null),'#ba7517',{t:.3,dash:[5,3],ps:'triangle',pr:3});
   if(vis.sleep)push('Сон',data.map(r=>sleepVal(r.sleep_hours)),'#185fa5',{t:0,lw:1.5,pr:2});
   if(vis.smoked_line)ds.push({label:'Косяков',data:data.map(r=>smokedVal(r.smoked)),borderColor:'#3b6d11',backgroundColor:'rgba(59,109,17,.08)',tension:0.35,pointRadius:2,pointHoverRadius:5,borderWidth:1.5,fill:false,yAxisID:'y',order:2,spanGaps:true});
-  if(vis.yoga_b)ds.push({label:'Йога',data:data.map(r=>r.yoga?2.5:2.0),borderColor:'#7f77dd',backgroundColor:'rgba(127,119,221,.08)',tension:0.3,pointRadius:2,pointHoverRadius:5,borderWidth:1.5,fill:false,yAxisID:'y',order:2,spanGaps:true});
-  if(vis.modafinil_b)ds.push({label:'Модафинил',data:data.map(r=>r.modafinil?2.5:2.0),borderColor:'#d85a30',backgroundColor:'rgba(216,90,48,.07)',tension:0.3,pointRadius:2,pointHoverRadius:5,borderWidth:1.5,fill:false,yAxisID:'y',order:2,spanGaps:true});
+  if(vis.yoga_b)ds.push({label:'Йога',data:data.map(r=>r.yoga?2.2:1.8),borderColor:'#7f77dd',tension:0.3,pointRadius:2,borderWidth:1.5,fill:false,yAxisID:'y',order:2,spanGaps:true});
+  if(vis.modafinil_b)ds.push({label:'Модафинил',data:data.map(r=>r.modafinil?2.2:1.8),borderColor:'#d85a30',tension:0.3,pointRadius:2,borderWidth:1.5,fill:false,yAxisID:'y',order:2,spanGaps:true});
   return ds;
 }
-
 function buildC2ds(data){
   const ds=[];
-  const bar=(label,vals,color)=>ds.push({type:'bar',label,data:vals,backgroundColor:color,borderColor:color.replace('.5','.8'),borderWidth:1,borderRadius:3,barPercentage:.55});
+  const bar=(label,vals,color)=>ds.push({type:'bar',label,data:vals,backgroundColor:color,borderWidth:1,borderRadius:3,barPercentage:.55});
   if(vis.meditate)bar('Медитация',data.map(r=>meditateVal(r.meditate_minutes)),'rgba(83,58,183,.5)');
   if(vis.work)bar('Работа',data.map(r=>workVal(r.productivity_hours)),'rgba(59,109,17,.5)');
   if(vis.messages)bar('Сообщения',data.map(r=>r._messages??null),'rgba(153,53,86,.5)');
   return ds;
 }
 
-function rebuild(){
-  const data=getD();const labels=data.map(d=>d.date.slice(5));
-  c1.data.labels=labels;c1.data.datasets=buildC1ds(data);c1.update();
-  c2.data.labels=labels;c2.data.datasets=buildC2ds(data);c2.update();
-  buildNotesBar(data);buildNoteDots(data);
+function updateAxes(){
+  if(!c1)return;
+  const data=getD();
+  c1.options.scales.y.min=computeYMin(data);
+  c1.options.scales.y.max=computeYMax(data);
+  c1.options.scales.ySleep.display=!!vis.sleep;
 }
 
-function buildNotesBar(data){
-  const bar=document.getElementById('notes-bar');bar.innerHTML='';bar.style.display='none';
-  if(!data.length)return;
-  const notes=AI_NOTES.filter(n=>data.some(d=>d.date===n.date));
-  if(!notes.length)return;
-  bar.style.display='block';
-  notes.forEach(n=>{
-    const idx=data.findIndex(d=>d.date===n.date);if(idx<0)return;
-    const pct=((idx+.5)/data.length)*100;
-    const vl=document.createElement('div');vl.className='n-vline';vl.style.left=pct+'%';
-    const pin=document.createElement('div');pin.className='n-pin';pin.style.left=pct+'%';pin.textContent='📝';
-    const pop=document.createElement('div');pop.className='n-popup';pop.style.left=pct+'%';pop.textContent=n.text;
-    pin.addEventListener('mouseenter',()=>{pop.style.display='block';vl.style.background='rgba(186,117,23,.5)';});
-    pin.addEventListener('mouseleave',()=>{pop.style.display='none';vl.style.background='rgba(186,117,23,.25)';});
-    bar.appendChild(vl);bar.appendChild(pin);bar.appendChild(pop);
-  });
+function rebuild(){
+  const data=getD();
+  updateAxes();
+  c1.data.labels=data.map(d=>d.date.slice(5));
+  c1.data.datasets=buildC1ds(data);
+  c1.update();
+  c2.data.labels=data.map(d=>d.date.slice(5));
+  c2.data.datasets=buildC2ds(data);
+  c2.update();
+  buildNoteDots(data);
 }
 
 function buildNoteDots(data){
-  const wrap=document.getElementById('note-dots');wrap.innerHTML='';if(!data.length)return;
-  const canvas=document.getElementById('c1');
-  data.forEach((d,i)=>{
-    if(!d.mood_note)return;
-    const pct=(((i+.5)/data.length)*100)+'%';
-    const vline=document.createElement('div');
-    vline.style.cssText=`position:absolute;left:${pct};top:0;transform:translateX(-50%);width:1px;background:rgba(44,44,42,.12);pointer-events:none;display:none;z-index:3;`;
-    vline.style.height=(canvas?canvas.offsetHeight:140)+'px';
-    vline.style.marginTop=`-${(canvas?canvas.offsetHeight:140)}px`;
-    const dot=document.createElement('div');dot.className='n-dot';dot.style.left=pct;
+  const wrap=document.getElementById('note-dots');wrap.innerHTML='';
+  if(!data.length)return;
+  ALL_NOTES.filter(n=>data.some(d=>d.date===n.date)).forEach(n=>{
+    const idx=data.findIndex(d=>d.date===n.date);if(idx<0)return;
+    const pct=((idx+.5)/data.length)*100;
+    const dot=document.createElement('div');dot.className='n-dot';dot.style.left=pct+'%';
     const pop=document.createElement('div');pop.className='n-dot-pop';
-    const pctNum=(i+.5)/data.length;
-    pop.style.left=pct;pop.style.transform=pctNum>0.75?'translateX(-90%)':pctNum<0.15?'translateX(-10%)':'translateX(-50%)';
-    pop.textContent=d.mood_note;
-    dot.addEventListener('mouseenter',()=>{pop.style.display='block';vline.style.display='block';dot.style.background='rgba(44,44,42,.6)';});
-    dot.addEventListener('mouseleave',()=>{pop.style.display='none';vline.style.display='none';dot.style.background='';});
-    wrap.appendChild(vline);wrap.appendChild(dot);wrap.appendChild(pop);
+    pop.style.left=pct+'%';
+    pop.style.transform=pct>75?'translateX(-90%)':pct<15?'translateX(-10%)':'translateX(-50%)';
+    pop.textContent=n.text;
+    dot.addEventListener('mouseenter',()=>pop.style.display='block');
+    dot.addEventListener('mouseleave',()=>pop.style.display='none');
+    wrap.appendChild(dot);wrap.appendChild(pop);
   });
 }
 
-function tog(k){vis[k]=!vis[k];const b=document.getElementById('btn-'+k);if(b){b.classList.toggle('active',vis[k]);b.classList.toggle('inactive',!vis[k]);}updateYMin();rebuild();}
+function tog(k){vis[k]=!vis[k];const b=document.getElementById('btn-'+k);if(b){b.classList.toggle('active',vis[k]);b.classList.toggle('inactive',!vis[k]);}rebuild();}
 function togOv(){overlayOn=!overlayOn;document.getElementById('btn-ov').classList.toggle('on',overlayOn);rebuild();}
-function toggleSmooth(){smoothing=!smoothing;document.getElementById('btn-smooth').classList.toggle('on',smoothing);rebuild();}
 function setRange(n,el){rangeN=n;dateFrom=null;dateTo=null;document.getElementById('df').value='';document.getElementById('dt').value='';document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');rebuild();}
 function setCustomRange(){dateFrom=document.getElementById('df').value||null;dateTo=document.getElementById('dt').value||null;rangeN=999;document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));rebuild();}
 function setStatus(cls,txt){document.getElementById('sdot').className=cls;document.getElementById('stxt').textContent=txt;}
 
 async function refreshData(){
-  const btn=document.getElementById('refresh-btn');btn.textContent='⏳...';
+  const btn=document.getElementById('refresh-btn');btn.textContent='⏳ Загружаю...';btn.classList.add('loading');
   setStatus('spin','Загружаю...');
   try{
     const r1=await fetch(SHEETS.main);
     const p1=parseGviz(await r1.text());
     const rows=sheetsToRows(p1);
     if(rows?.length){
-      let agg=aggregateByDay(rows);
-      try{
-        const r2=await fetch(SHEETS.notes);
-        const p2=parseGviz(await r2.text());
-        const notesRows=sheetsToRows(p2);
-        if(notesRows?.length)agg=mergeNotes(agg,notesRows);
-        else{agg=agg.map(row=>{row._ai=row.ai_score??null;if(row.mood_note)AI_NOTES.push({date:row.date,text:row.mood_note});return row;});}
-      }catch{agg=agg.map(row=>{row._ai=row.ai_score??null;return row;});}
+      const agg=aggregateByDay(rows);
+      let notesRows=null;
+      try{const r2=await fetch(SHEETS.notes);const p2=parseGviz(await r2.text());notesRows=sheetsToRows(p2);}catch{}
+      buildAllNotes(agg,notesRows);
       DATA=agg;
       setStatus('ok',`Обновлено · ${DATA[DATA.length-1]?.date||'—'}`);
-    }else{setStatus('err','Sheets недоступен — статика');}
+    }else{
+      setStatus('err','Sheets недоступен — статика');
+    }
   }catch{setStatus('err','Ошибка сети — статика');}
-  rebuild();btn.textContent='↻ Обновить';
+  rebuild();btn.textContent='↻ Обновить';btn.classList.remove('loading');
 }
 
 let zoomStart=null,zoomEnd=null,isDragging=false;
 function initZoom(){
-  const canvas=document.getElementById('c1');const sel=document.getElementById('zoom-sel');
-  canvas.addEventListener('mousedown',e=>{if(e.button!==0)return;const rect=canvas.getBoundingClientRect();zoomStart=(e.clientX-rect.left)/rect.width;isDragging=true;sel.style.display='block';sel.style.left=(zoomStart*100)+'%';sel.style.width='0';});
-  canvas.addEventListener('mousemove',e=>{if(!isDragging)return;const rect=canvas.getBoundingClientRect();zoomEnd=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));const l=Math.min(zoomStart,zoomEnd);const w=Math.abs(zoomEnd-zoomStart);sel.style.left=(l*100)+'%';sel.style.width=(w*100)+'%';});
-  canvas.addEventListener('mouseup',e=>{if(!isDragging)return;isDragging=false;const rect=canvas.getBoundingClientRect();zoomEnd=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));sel.style.display='none';if(Math.abs(zoomEnd-zoomStart)<0.02)return;const data=getD();const n=data.length;const iS=Math.max(0,Math.floor(Math.min(zoomStart,zoomEnd)*n));const iE=Math.min(n-1,Math.ceil(Math.max(zoomStart,zoomEnd)*n));if(iE<=iS)return;dateFrom=data[iS].date;dateTo=data[iE].date;document.getElementById('df').value=dateFrom;document.getElementById('dt').value=dateTo;document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));document.getElementById('zoom-reset').style.display='inline-block';rebuild();});
-  canvas.addEventListener('mouseleave',()=>{if(isDragging){isDragging=false;sel.style.display='none';}});
+  const cv=document.getElementById('c1'),sel=document.getElementById('zoom-sel');
+  cv.addEventListener('mousedown',e=>{if(e.button!==0)return;const r=cv.getBoundingClientRect();zoomStart=(e.clientX-r.left)/r.width;isDragging=true;sel.style.display='block';sel.style.left=(zoomStart*100)+'%';sel.style.width='0';});
+  cv.addEventListener('mousemove',e=>{if(!isDragging)return;const r=cv.getBoundingClientRect();zoomEnd=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));const l=Math.min(zoomStart,zoomEnd),w=Math.abs(zoomEnd-zoomStart);sel.style.left=(l*100)+'%';sel.style.width=(w*100)+'%';});
+  cv.addEventListener('mouseup',e=>{if(!isDragging)return;isDragging=false;const r=cv.getBoundingClientRect();zoomEnd=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));sel.style.display='none';if(Math.abs(zoomEnd-zoomStart)<0.02)return;const data=getD(),n=data.length;const iS=Math.max(0,Math.floor(Math.min(zoomStart,zoomEnd)*n)),iE=Math.min(n-1,Math.ceil(Math.max(zoomStart,zoomEnd)*n));if(iE<=iS)return;dateFrom=data[iS].date;dateTo=data[iE].date;document.getElementById('df').value=dateFrom;document.getElementById('dt').value=dateTo;document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));document.getElementById('zoom-reset').style.display='inline-block';rebuild();});
+  cv.addEventListener('mouseleave',()=>{if(isDragging){isDragging=false;sel.style.display='none';}});
 }
 function resetZoom(){dateFrom=null;dateTo=null;rangeN=999;document.getElementById('df').value='';document.getElementById('dt').value='';document.getElementById('zoom-reset').style.display='none';document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));document.querySelector('.range-btn:last-of-type')?.classList.add('active');rebuild();}
 
-const crosshairPlugin={
-  id:'crosshair',
-  afterDraw(chart){
-    if(chart._crosshairX==null)return;
-    const{ctx,chartArea,scales}=chart;
-    const x=chart._crosshairX;
-    const y=chart._crosshairY;
-    ctx.save();
-    ctx.setLineDash([3,3]);
-    ctx.strokeStyle='rgba(44,44,42,.25)';
-    ctx.lineWidth=1;
-    ctx.beginPath();ctx.moveTo(x,chartArea.top);ctx.lineTo(x,chartArea.bottom);ctx.stroke();
-    if(y!=null){ctx.beginPath();ctx.moveTo(chartArea.left,y);ctx.lineTo(chartArea.right,y);ctx.stroke();}
-    ctx.restore();
-  }
-};
-
-function attachCrosshair(canvas,chart){
-  canvas.addEventListener('mousemove',e=>{
-    const rect=canvas.getBoundingClientRect();
-    const x=e.clientX-rect.left;
-    const y=e.clientY-rect.top;
+const crosshairPlugin={id:'crosshair',afterDraw(chart){
+  if(chart._chX==null)return;
+  const{ctx,chartArea}=chart;
+  ctx.save();ctx.setLineDash([3,3]);ctx.strokeStyle='rgba(44,44,42,.2)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(chart._chX,chartArea.top);ctx.lineTo(chart._chX,chartArea.bottom);ctx.stroke();
+  if(chart._chY!=null){ctx.beginPath();ctx.moveTo(chartArea.left,chart._chY);ctx.lineTo(chartArea.right,chart._chY);ctx.stroke();}
+  ctx.restore();
+}};
+function attachCrosshair(cv,chart){
+  cv.addEventListener('mousemove',e=>{
+    const rect=cv.getBoundingClientRect(),x=e.clientX-rect.left,y=e.clientY-rect.top;
     const ca=chart.chartArea;
-    if(!ca||x<ca.left||x>ca.right||y<ca.top||y>ca.bottom){chart._crosshairX=null;chart._crosshairY=null;chart.draw();return;}
-    chart._crosshairX=x;
-    chart._crosshairY=y;
-    const data=getD();
-    const idx=Math.round((x-ca.left)/(ca.right-ca.left)*(data.length-1));
+    if(!ca||x<ca.left||x>ca.right||y<ca.top||y>ca.bottom){chart._chX=null;chart._chY=null;chart.draw();document.getElementById('tt').style.display='none';return;}
+    chart._chX=x;chart._chY=y;
+    const data=getD(),idx=Math.round((x-ca.left)/(ca.right-ca.left)*(data.length-1));
     const tt=document.getElementById('tt');
     if(idx>=0&&idx<data.length){
-      const row=data[idx];
       let nearest=null,minDist=Infinity;
-      chart.data.datasets.forEach((ds,di)=>{
+      chart.data.datasets.forEach(ds=>{
         if(!ds.label||ds.type==='bar')return;
         const v=ds.data[idx];if(v==null)return;
-        const py=chart.scales.y.getPixelForValue(v);
-        const dist=Math.abs(py-y);
+        const dist=Math.abs(chart.scales.y.getPixelForValue(v)-y);
         if(dist<minDist){minDist=dist;nearest={label:ds.label,value:v,color:ds.borderColor};}
       });
-      let html=`<span style="color:#888780;font-size:10px">${row.date}</span>`;
-      if(nearest&&minDist<40)html+=`&nbsp;&nbsp;<span style="color:${nearest.color};font-weight:500">${nearest.label}&nbsp;${nearest.value.toFixed(1)}</span>`;
-      tt.innerHTML=html;
-      tt.style.display='block';
+      let html=`<span style="color:#888780;font-size:10px">${data[idx].date}</span>`;
+      if(nearest&&minDist<50)html+=`&nbsp;&nbsp;<span style="color:${nearest.color};font-weight:500">${nearest.label} ${nearest.value.toFixed(1)}</span>`;
+      tt.innerHTML=html;tt.style.display='block';
       tt.style.left=Math.min(e.clientX+14,window.innerWidth-200)+'px';
       tt.style.top=(e.clientY-36)+'px';
     }
     chart.draw();
   });
-  canvas.addEventListener('mouseleave',()=>{chart._crosshairX=null;chart._crosshairY=null;chart.draw();document.getElementById('tt').style.display='none';});
+  cv.addEventListener('mouseleave',()=>{chart._chX=null;chart._chY=null;chart.draw();document.getElementById('tt').style.display='none';});
 }
 
 function init(){
-  const gridColor='rgba(44,44,42,.07)';
-  const tickColor='#b4b2a9';
-  const baseOpts={responsive:true,maintainAspectRatio:true,animation:false,resizeDelay:0,interaction:{mode:'nearest',intersect:false,axis:'x'},plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{ticks:{color:tickColor,font:{size:8},maxRotation:45},grid:{color:gridColor}},y:{ticks:{color:tickColor,font:{size:8}},grid:{color:gridColor}}}};
-
+  const gc='rgba(44,44,42,.07)',tc='#b4b2a9';
+  const baseOpts={responsive:true,maintainAspectRatio:true,animation:false,resizeDelay:0,interaction:{mode:'nearest',intersect:false,axis:'x'},plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{ticks:{color:tc,font:{size:9},maxRotation:45},grid:{color:gc}},y:{ticks:{color:tc,font:{size:9}},grid:{color:gc}}}};
+  const d0=getD();
   c1=new Chart(document.getElementById('c1'),{
     type:'line',data:{labels:[],datasets:[]},
-    options:{...baseOpts,clip:false,scales:{...baseOpts.scales,
-      y:{...baseOpts.scales.y,min:getYMin(),max:10,ticks:{...baseOpts.scales.y.ticks,stepSize:1,callback:v=>{if(v<=1||v>=10)return'';return v;}}},
-      ySleep:{position:'right',display:false,min:getYMin(),max:13,grid:{display:false},ticks:{color:'rgba(24,95,165,.5)',font:{size:7},stepSize:1,callback:v=>{const r=v+4;if(r<4||r>13)return'';return r+'ч';}}},
-    },
-    plugins:{...baseOpts.plugins}},
-    plugins:[crosshairPlugin,{id:'darkZone',afterDatasetsDraw(chart){const{ctx,chartArea,scales}=chart;if(!chartArea||!scales.y)return;const y9=scales.y.getPixelForValue(9);if(y9>chartArea.top){ctx.save();ctx.fillStyle='rgba(44,44,42,.04)';ctx.fillRect(chartArea.left,chartArea.top,chartArea.width,y9-chartArea.top);ctx.restore();}}}]
+    options:{...baseOpts,clip:false,scales:{
+      ...baseOpts.scales,
+      y:{...baseOpts.scales.y,min:computeYMin(d0),max:computeYMax(d0),ticks:{...baseOpts.scales.y.ticks,stepSize:1,callback:v=>Number.isInteger(v)?v:''}},
+      ySleep:{position:'right',display:false,min:1.5,max:10,grid:{display:false},ticks:{color:'rgba(24,95,165,.5)',font:{size:8},callback:v=>{const r=Math.round((v-2)/6*8+4);if(r<4||r>12)return'';return r+'ч';}}},
+    }},
+    plugins:[crosshairPlugin]
   });
+  c2=new Chart(document.getElementById('c2'),{type:'bar',data:{labels:[],datasets:[]},options:{...baseOpts,scales:{...baseOpts.scales,y:{...baseOpts.scales.y,min:0}}}});
 
-  c2=new Chart(document.getElementById('c2'),{
-    type:'bar',data:{labels:[],datasets:[]},
-    options:{...baseOpts,scales:{...baseOpts.scales,y:{...baseOpts.scales.y,min:0}}}
-  });
-
-  const strip=document.getElementById('c1-btn-strip');
-  const ctrlDiv=document.getElementById('c1-controls');
+  const strip=document.getElementById('c1-btn-strip'),ctrlDiv=document.getElementById('c1-controls');
   if(strip&&ctrlDiv){strip.appendChild(ctrlDiv);ctrlDiv.style.margin='0';}
 
   attachCrosshair(document.getElementById('c1'),c1);
-
   initZoom();
   Object.entries(vis).forEach(([k,v])=>{const b=document.getElementById('btn-'+k);if(b){b.classList.toggle('active',v);b.classList.toggle('inactive',!v);}});
   setStatus('ok',`Статика · ${STATIC[STATIC.length-1].date}`);
   rebuild();
 }
-
-init();
 </script>
+</body>
+</html>
