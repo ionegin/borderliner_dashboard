@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Borderliner</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
@@ -11,36 +12,35 @@
 #auth-input{background:#fff;border:1px solid #d3d1c7;border-radius:8px;color:#2c2c2a;font-size:14px;padding:10px 16px;outline:none;width:200px;text-align:center;letter-spacing:.15em;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
 #auth-input:focus{border-color:#ba7517;}
 #auth-error{color:#a32d2d;font-size:11px;opacity:0;transition:opacity .2s;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;}
-body{background:#f5f0e8;}
-#app{color:#2c2c2a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:20px 24px 100px;background:#f5f0e8;min-height:100vh;}
-h1{font-size:13px;font-weight:500;color:#888780;margin-bottom:14px;letter-spacing:.1em;text-transform:uppercase;}
-.controls{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;align-items:center;}
-.toggle-btn{padding:3px 10px;border-radius:20px;border:1.5px solid;font-size:11px;cursor:pointer;background:transparent;transition:opacity .15s;font-weight:500;white-space:nowrap;}
+body{background:#f5f0e8;min-width:0;}
+#app{color:#2c2c2a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:16px 16px 80px;background:#f5f0e8;min-height:100vh;max-width:1400px;margin:0 auto;width:100%;}
+h1{font-size:13px;font-weight:500;color:#888780;margin-bottom:12px;letter-spacing:.1em;text-transform:uppercase;}
+.controls{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;align-items:center;}
+.toggle-btn{padding:2px 9px;border-radius:20px;border:1.5px solid;font-size:10px;cursor:pointer;background:transparent;transition:opacity .15s;font-weight:500;white-space:nowrap;}
 .toggle-btn.active{opacity:1;}.toggle-btn.inactive{opacity:.25;}
 .sep{width:1px;background:#d3d1c7;align-self:stretch;margin:0 2px;}
-.overlay-btn{padding:3px 10px;border-radius:20px;border:1.5px solid #b4b2a9;font-size:11px;cursor:pointer;background:transparent;color:#888780;font-weight:500;}
+.overlay-btn{padding:2px 9px;border-radius:20px;border:1.5px solid #b4b2a9;font-size:10px;cursor:pointer;background:transparent;color:#888780;font-weight:500;}
 .overlay-btn.on{background:rgba(136,135,128,.15);color:#2c2c2a;border-color:#5f5e5a;}
-.range-row{display:flex;gap:6px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
-.range-btn{padding:3px 9px;border-radius:6px;border:1px solid #d3d1c7;font-size:11px;cursor:pointer;background:#ebe7dd;color:#888780;}
+.range-row{display:flex;gap:5px;align-items:center;margin-bottom:8px;flex-wrap:wrap;}
+.range-btn{padding:2px 8px;border-radius:6px;border:1px solid #d3d1c7;font-size:10px;cursor:pointer;background:#ebe7dd;color:#888780;}
 .range-btn.active{background:#d3d1c7;color:#2c2c2a;border-color:#888780;}
-.date-input{background:#ebe7dd;border:1px solid #d3d1c7;border-radius:6px;color:#888780;font-size:11px;padding:3px 7px;}
-.rl{font-size:11px;color:#b4b2a9;}
-.chart-wrap{background:#fff;border-radius:12px;border:1px solid #d3d1c7;padding:14px 14px 10px;margin-bottom:8px;box-shadow:0 1px 4px rgba(44,44,42,.06);}
+.date-input{background:#ebe7dd;border:1px solid #d3d1c7;border-radius:6px;color:#888780;font-size:10px;padding:2px 6px;}
+.rl{font-size:10px;color:#b4b2a9;}
+.chart-wrap{background:#fff;border-radius:12px;border:1px solid #d3d1c7;padding:12px 12px 8px;margin-bottom:8px;box-shadow:0 1px 4px rgba(44,44,42,.06);}
 .c1-rel{position:relative;}
 .zoom-sel{position:absolute;top:0;height:100%;background:rgba(186,117,23,.1);border-left:1px solid rgba(186,117,23,.5);border-right:1px solid rgba(186,117,23,.5);pointer-events:none;display:none;z-index:4;}
-#zoom-reset{display:none;padding:2px 8px;border-radius:6px;border:1px solid #ba7517;font-size:10px;cursor:pointer;background:transparent;color:#ba7517;margin-left:8px;}
-.tt{position:fixed;background:#fff;border:1px solid #d3d1c7;border-radius:6px;padding:6px 10px;font-size:11px;color:#2c2c2a;pointer-events:none;z-index:200;display:none;box-shadow:0 2px 8px rgba(44,44,42,.1);}
-#status{font-size:10px;color:#b4b2a9;margin-bottom:12px;display:flex;gap:10px;align-items:center;}
-#sdot{width:6px;height:6px;border-radius:50%;background:#b4b2a9;flex-shrink:0;}
+#zoom-reset{display:none;padding:2px 7px;border-radius:6px;border:1px solid #ba7517;font-size:9px;cursor:pointer;background:transparent;color:#ba7517;margin-left:6px;}
+.tt{position:fixed;background:#fff;border:1px solid #d3d1c7;border-radius:6px;padding:5px 10px;font-size:11px;color:#2c2c2a;pointer-events:none;z-index:200;display:none;box-shadow:0 2px 8px rgba(44,44,42,.1);}
+#status{font-size:9px;color:#b4b2a9;margin-bottom:10px;display:flex;gap:8px;align-items:center;}
+#sdot{width:5px;height:5px;border-radius:50%;background:#b4b2a9;flex-shrink:0;}
 #sdot.ok{background:#3b6d11;}#sdot.err{background:#a32d2d;}#sdot.spin{background:#ba7517;animation:pulse 1s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-#refresh-btn{position:fixed;bottom:28px;right:28px;background:#ba7517;color:#fff;border:none;border-radius:30px;padding:13px 26px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(186,117,23,.3);transition:all .2s;z-index:100;}
-#refresh-btn:hover{transform:translateY(-2px);}
+#refresh-btn{position:fixed;bottom:24px;right:24px;background:#ba7517;color:#fff;border:none;border-radius:28px;padding:11px 22px;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 4px 16px rgba(186,117,23,.3);z-index:100;}
 #refresh-btn.loading{opacity:.65;cursor:wait;}
-#note-dots{position:relative;height:18px;margin-top:3px;}
-.n-dot{position:absolute;width:6px;height:6px;border-radius:50%;background:#ba7517;transform:translateX(-50%);top:5px;cursor:pointer;opacity:.6;}
+#note-dots{position:relative;height:16px;margin-top:2px;}
+.n-dot{position:absolute;width:6px;height:6px;border-radius:50%;background:#ba7517;transform:translateX(-50%);top:4px;cursor:pointer;opacity:.55;}
 .n-dot:hover{opacity:1;}
-.n-dot-pop{position:absolute;background:#fff8ee;border:1px solid rgba(186,117,23,.4);border-radius:6px;padding:5px 8px;font-size:9px;color:#633806;bottom:20px;z-index:50;pointer-events:none;display:none;white-space:normal;max-width:260px;line-height:1.5;}
+.n-dot-pop{position:absolute;background:#fff8ee;border:1px solid rgba(186,117,23,.4);border-radius:6px;padding:5px 8px;font-size:9px;color:#633806;bottom:18px;z-index:50;pointer-events:none;display:none;white-space:normal;max-width:260px;line-height:1.5;}
 </style>
 </head>
 <body>
@@ -70,20 +70,22 @@ h1{font-size:13px;font-weight:500;color:#888780;margin-bottom:14px;letter-spacin
     <button class="toggle-btn inactive" id="btn-racing" style="color:#d4537e;border-color:#d4537e" onclick="tog('racing')">Мысли</button>
     <div class="sep"></div>
     <button class="toggle-btn inactive" id="btn-ai" style="color:#ba7517;border-color:#ba7517" onclick="tog('ai')">AI</button>
+    <button class="toggle-btn inactive" id="btn-ma7" style="color:#9b4dca;border-color:#9b4dca" onclick="tog('ma7')">MA·7</button>
     <div class="sep"></div>
     <button class="toggle-btn inactive" id="btn-sleep" style="color:#185fa5;border-color:#185fa5" onclick="tog('sleep')">Сон</button>
+    <button class="toggle-btn inactive" id="btn-meditate_ov" style="color:#39d353;border-color:#39d353" onclick="tog('meditate_ov')">Медитация</button>
     <button class="toggle-btn inactive" id="btn-smoked_line" style="color:#3b6d11;border-color:#3b6d11" onclick="tog('smoked_line')">Косяков</button>
     <div class="sep"></div>
     <button class="toggle-btn inactive" id="btn-yoga_b" style="color:#7f77dd;border-color:#7f77dd" onclick="tog('yoga_b')">Йога</button>
     <button class="toggle-btn inactive" id="btn-modafinil_b" style="color:#d85a30;border-color:#d85a30" onclick="tog('modafinil_b')">Модафинил</button>
   </div>
   <div class="chart-wrap">
-    <div style="display:flex;align-items:center;margin-bottom:6px;">
+    <div style="display:flex;align-items:center;margin-bottom:5px;flex-wrap:wrap;gap:4px;">
       <button class="overlay-btn" id="btn-ov" onclick="togOv()">⊞ Наложить активность</button>
       <button id="zoom-reset" onclick="resetZoom()">✕ Сброс zoom</button>
     </div>
-    <div id="c1-top-zone" style="background:rgba(0,0,0,.03);border-radius:6px 6px 0 0;padding:5px 8px;border:1px solid #d3d1c7;border-bottom:none;">
-      <div id="c1-btn-strip" style="display:flex;flex-wrap:wrap;gap:5px;align-items:center;min-height:22px;"></div>
+    <div id="c1-top-zone" style="background:rgba(0,0,0,.03);border-radius:6px 6px 0 0;padding:4px 6px;border:1px solid #d3d1c7;border-bottom:none;">
+      <div id="c1-btn-strip" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-height:18px;"></div>
     </div>
     <div class="c1-rel" style="border-radius:0 0 6px 6px;overflow:hidden;border:1px solid #d3d1c7;border-top:none;">
       <div class="zoom-sel" id="zoom-sel"></div>
@@ -92,12 +94,12 @@ h1{font-size:13px;font-weight:500;color:#888780;margin-bottom:14px;letter-spacin
     <div id="note-dots"></div>
   </div>
   <div class="controls">
-    <button class="toggle-btn active" id="btn-meditate" style="color:#533ab7;border-color:#533ab7" onclick="tog('meditate')">🧘 Медитация</button>
-    <button class="toggle-btn active" id="btn-work" style="color:#3b6d11;border-color:#3b6d11" onclick="tog('work')">💼 Работа</button>
-    <button class="toggle-btn active" id="btn-messages" style="color:#993556;border-color:#993556" onclick="tog('messages')">💬 Сообщения</button>
+    <button class="toggle-btn active" id="btn-meditate" style="color:#533ab7;border-color:#533ab7" onclick="tog('meditate')">Медитация</button>
+    <button class="toggle-btn active" id="btn-work" style="color:#3b6d11;border-color:#3b6d11" onclick="tog('work')">Работа</button>
+    <button class="toggle-btn active" id="btn-messages" style="color:#993556;border-color:#993556" onclick="tog('messages')">Сообщения</button>
   </div>
   <div class="chart-wrap">
-    <canvas id="c2" height="100"></canvas>
+    <canvas id="c2" height="90"></canvas>
   </div>
 </div>
 
@@ -172,9 +174,10 @@ const STATIC=[
 
 let DATA=[...STATIC];
 let ALL_NOTES=STATIC.filter(r=>r.mood_note).map(r=>({date:r.date,text:r.mood_note}));
-const vis={anxiety:true,energy:true,irritability:true,racing:false,ai:false,sleep:false,smoked_line:false,meditate:true,work:true,messages:true,yoga_b:false,modafinil_b:false};
+const vis={anxiety:true,energy:true,irritability:true,racing:false,ai:false,ma7:false,sleep:false,meditate_ov:false,smoked_line:false,meditate:true,work:true,messages:true,yoga_b:false,modafinil_b:false};
 let dateFrom=null,dateTo=null,rangeN=999,overlayOn=false,c1,c2;
 
+// ── parsers ──
 function parseGviz(raw){const m=raw.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);if(!m)return null;try{return JSON.parse(m[1]);}catch{return null;}}
 function gvizDateToISO(v){
   if(!v)return null;
@@ -244,19 +247,37 @@ function buildAllNotes(mainAgg,notesRows){
   ALL_NOTES=Object.entries(byDate).map(([date,texts])=>({date,text:texts.join(' · ')}));
 }
 
+// ── math helpers ──
 function getD(){let d=DATA;if(dateFrom)d=d.filter(r=>r.date>=dateFrom);if(dateTo)d=d.filter(r=>r.date<=dateTo);if(rangeN<999&&!dateFrom&&!dateTo)d=d.slice(-rangeN);return d;}
-function ma(arr){return arr.map((v,i)=>{const s=arr.slice(Math.max(0,i-1),i+2).filter(x=>x!=null);return s.length?s.reduce((a,b)=>a+b)/s.length:null;});}
-function sleepVal(h){if(h==null)return null;return Math.max(0,(h-4)/8*6+2);}
+
+// скользящее среднее — окно N дней
+function maN(arr,n){
+  return arr.map((v,i)=>{
+    const half=Math.floor(n/2);
+    const slice=arr.slice(Math.max(0,i-half),i+half+1).filter(x=>x!=null);
+    return slice.length?slice.reduce((a,b)=>a+b)/slice.length:null;
+  });
+}
+// короткое сглаживание ±1 для основных линий
+function ma(arr){return maN(arr,3);}
+
 function smokedVal(n){if(n==null)return null;if(n===0)return 0;return Math.min(n,8);}
 function meditateVal(m){return m!=null?Math.min(m,100)/10:null;}
 function workVal(h){return h!=null?Math.min(h,10):null;}
+
+// Сон: столбцы пропорциональны реальным часам. 
+// Масштаб: 8ч = 4 единицы оси (уровень "4"), 12ч=6, 4ч=2
+function sleepBarVal(h){if(h==null)return null;return Math.max(0,h/2);}
+
+// Медитация overlay: 60мин = отметка 4 на оси
+// т.е. минуты/60 * 4
+function meditateOvVal(m){if(m==null)return null;return Math.max(0,(m/60)*4);}
 
 function computeYMax(data){
   const vals=[];
   data.forEach(r=>{
     ['anxiety','energy','irritability','racing_thoughts'].forEach(f=>{if(r[f]!=null)vals.push(r[f]);});
     if(vis.ai&&r._ai!=null)vals.push(r._ai);
-    if(vis.sleep&&r.sleep_hours!=null)vals.push(sleepVal(r.sleep_hours));
     if(vis.smoked_line&&r.smoked!=null)vals.push(smokedVal(r.smoked));
   });
   if(!vals.length)return 10;
@@ -271,25 +292,78 @@ function computeYMin(data){
 
 function buildC1ds(data){
   const ds=[];
+  const yMax=computeYMax(data);
+  const OV_BASE=2,OV_TOP=yMax-0.5,OV_H=Math.max(1,OV_TOP-OV_BASE);
+
+  // ── фоновые overlay (активность) ──
   if(overlayOn){
-    const OV_BASE=2,OV_TOP=computeYMax(data)-0.5,OV_H=Math.max(1,OV_TOP-OV_BASE);
     [[data.map(r=>r.meditate_minutes!=null?OV_BASE+Math.min(r.meditate_minutes,100)/100*OV_H:null),'rgba(83,58,183,.1)'],
      [data.map(r=>r.productivity_hours!=null?OV_BASE+Math.min(r.productivity_hours,10)/10*OV_H:null),'rgba(59,109,17,.1)'],
      [data.map(r=>r._messages!=null?OV_BASE+Math.min(r._messages,12)/12*OV_H:null),'rgba(153,53,86,.1)'],
-    ].forEach(([d,c])=>ds.push({type:'bar',label:'',data:d,backgroundColor:c,borderWidth:0,barPercentage:.95,base:OV_BASE,yAxisID:'y',order:20}));
+    ].forEach(([d,c])=>ds.push({type:'bar',label:'',data:d,backgroundColor:c,borderWidth:0,barPercentage:.98,categoryPercentage:1,base:OV_BASE,yAxisID:'y',order:20}));
   }
-  const push=(label,d,color,opts={})=>ds.push({label,data:d,borderColor:color,backgroundColor:'transparent',tension:opts.t||0.35,pointRadius:opts.pr??2,pointHoverRadius:5,borderWidth:opts.lw||2,borderDash:opts.dash,fill:false,pointStyle:opts.ps||'circle',yAxisID:'y',order:1,spanGaps:true});
+
+  // ── Сон — широкие полупрозрачные столбцы снизу ──
+  if(vis.sleep){
+    ds.push({
+      type:'bar',label:'Сон',
+      data:data.map(r=>sleepBarVal(r.sleep_hours)),
+      backgroundColor:'rgba(24,95,165,.18)',
+      borderColor:'rgba(24,95,165,.35)',
+      borderWidth:1,
+      borderRadius:2,
+      barPercentage:0.98,
+      categoryPercentage:1.0,
+      base:0,
+      yAxisID:'y',
+      order:15,
+    });
+  }
+
+  // ── Медитация overlay — линия по нижней части ──
+  if(vis.meditate_ov){
+    ds.push({
+      type:'line',label:'Медитация',
+      data:data.map(r=>meditateOvVal(r.meditate_minutes)),
+      borderColor:'#39d353',
+      backgroundColor:'rgba(57,211,83,.12)',
+      tension:0.35,pointRadius:1.5,pointHoverRadius:4,
+      borderWidth:2,fill:true,
+      yAxisID:'y',order:3,spanGaps:true,
+    });
+  }
+
+  // ── основные линии ──
+  const push=(label,d,color,opts={})=>ds.push({
+    type:'line',label,data:d,
+    borderColor:color,backgroundColor:'transparent',
+    tension:opts.t||0.35,pointRadius:opts.pr??2,pointHoverRadius:5,
+    borderWidth:opts.lw||2,borderDash:opts.dash,fill:false,
+    pointStyle:opts.ps||'circle',yAxisID:'y',order:1,spanGaps:true,
+  });
+
   if(vis.anxiety)push('Тревога',ma(data.map(r=>r.anxiety)),'#e24b4a',{t:.4});
   if(vis.energy)push('Энергия',ma(data.map(r=>r.energy)),'#1d9e75',{t:.4});
   if(vis.irritability)push('Раздражит.',ma(data.map(r=>r.irritability)),'#378add',{t:.4});
   if(vis.racing)push('Мысли',ma(data.map(r=>r.racing_thoughts)),'#d4537e',{t:.4});
   if(vis.ai)push('AI',data.map(r=>r._ai??null),'#ba7517',{t:.3,dash:[5,3],ps:'triangle',pr:3});
-  if(vis.sleep)push('Сон',data.map(r=>sleepVal(r.sleep_hours)),'#185fa5',{t:0,lw:1.5,pr:2});
-  if(vis.smoked_line)ds.push({label:'Косяков',data:data.map(r=>smokedVal(r.smoked)),borderColor:'#3b6d11',backgroundColor:'rgba(59,109,17,.08)',tension:0.35,pointRadius:2,pointHoverRadius:5,borderWidth:1.5,fill:false,yAxisID:'y',order:2,spanGaps:true});
-  if(vis.yoga_b)ds.push({label:'Йога',data:data.map(r=>r.yoga?2.2:1.8),borderColor:'#7f77dd',tension:0.3,pointRadius:2,borderWidth:1.5,fill:false,yAxisID:'y',order:2,spanGaps:true});
-  if(vis.modafinil_b)ds.push({label:'Модафинил',data:data.map(r=>r.modafinil?2.2:1.8),borderColor:'#d85a30',tension:0.3,pointRadius:2,borderWidth:1.5,fill:false,yAxisID:'y',order:2,spanGaps:true});
+
+  // MA·7 — скользящее среднее 7 дней по среднему (energy+anxiety+irritability)/3
+  if(vis.ma7){
+    const avg=data.map(r=>{
+      const vs=[r.energy,r.anxiety,r.irritability].filter(x=>x!=null);
+      return vs.length?vs.reduce((a,b)=>a+b)/vs.length:null;
+    });
+    push('MA·7',maN(avg,7),'#9b4dca',{t:.4,lw:2.5,dash:[6,3],pr:0});
+  }
+
+  if(vis.smoked_line)ds.push({type:'line',label:'Косяков',data:data.map(r=>smokedVal(r.smoked)),borderColor:'#3b6d11',backgroundColor:'rgba(59,109,17,.08)',tension:0.35,pointRadius:2,pointHoverRadius:5,borderWidth:1.5,fill:false,yAxisID:'y',order:2,spanGaps:true});
+  if(vis.yoga_b)ds.push({type:'line',label:'Йога',data:data.map(r=>r.yoga?2.2:1.8),borderColor:'#7f77dd',tension:0.3,pointRadius:2,borderWidth:1.5,fill:false,yAxisID:'y',order:2,spanGaps:true});
+  if(vis.modafinil_b)ds.push({type:'line',label:'Модафинил',data:data.map(r=>r.modafinil?2.2:1.8),borderColor:'#d85a30',tension:0.3,pointRadius:2,borderWidth:1.5,fill:false,yAxisID:'y',order:2,spanGaps:true});
+
   return ds;
 }
+
 function buildC2ds(data){
   const ds=[];
   const bar=(label,vals,color)=>ds.push({type:'bar',label,data:vals,backgroundColor:color,borderWidth:1,borderRadius:3,barPercentage:.55});
@@ -304,7 +378,6 @@ function updateAxes(){
   const data=getD();
   c1.options.scales.y.min=computeYMin(data);
   c1.options.scales.y.max=computeYMax(data);
-  c1.options.scales.ySleep.display=!!vis.sleep;
 }
 
 function rebuild(){
@@ -363,6 +436,7 @@ async function refreshData(){
   rebuild();btn.textContent='↻ Обновить';btn.classList.remove('loading');
 }
 
+// ── zoom ──
 let zoomStart=null,zoomEnd=null,isDragging=false;
 function initZoom(){
   const cv=document.getElementById('c1'),sel=document.getElementById('zoom-sel');
@@ -373,6 +447,7 @@ function initZoom(){
 }
 function resetZoom(){dateFrom=null;dateTo=null;rangeN=999;document.getElementById('df').value='';document.getElementById('dt').value='';document.getElementById('zoom-reset').style.display='none';document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));document.querySelector('.range-btn:last-of-type')?.classList.add('active');rebuild();}
 
+// ── crosshair ──
 const crosshairPlugin={id:'crosshair',afterDraw(chart){
   if(chart._chX==null)return;
   const{ctx,chartArea}=chart;
@@ -417,7 +492,6 @@ function init(){
     options:{...baseOpts,clip:false,scales:{
       ...baseOpts.scales,
       y:{...baseOpts.scales.y,min:computeYMin(d0),max:computeYMax(d0),ticks:{...baseOpts.scales.y.ticks,stepSize:1,callback:v=>Number.isInteger(v)?v:''}},
-      ySleep:{position:'right',display:false,min:1.5,max:10,grid:{display:false},ticks:{color:'rgba(24,95,165,.5)',font:{size:8},callback:v=>{const r=Math.round((v-2)/6*8+4);if(r<4||r>12)return'';return r+'ч';}}},
     }},
     plugins:[crosshairPlugin]
   });
